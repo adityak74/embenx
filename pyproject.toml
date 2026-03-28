@@ -20,6 +20,14 @@ dependencies = [
     "pyarrow>=12.0.0",
 ]
 
+[tool.hatch.build]
+include = [
+    "*.py",
+    "indexers/*.py",
+    "README.md",
+    "SKILL.md"
+]
+
 [project.scripts]
 embenx = "cli:app"
 
