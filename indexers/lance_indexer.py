@@ -46,3 +46,6 @@ class LanceIndexer(BaseIndexer):
                 if not os.path.islink(fp):
                     total_size += os.path.getsize(fp)
         return total_size
+
+    def cleanup(self) -> None:
+        self.temp_dir.cleanup()

@@ -18,7 +18,7 @@ def get_memory_usage():
     process = psutil.Process(os.getpid())
     return process.memory_info().rss / 1024 / 1024  # MB
 
-def run_benchmark(dataset_name: str, split: str, text_column: str, max_docs: int, indexer_names: List[str], model_name: str, console: Console, data_files: str = None):
+def run_benchmark(dataset_name: str, split: str, text_column: str, max_docs: int, indexer_names: List[str], model_name: str, console: Console, data_files: str = None, cleanup: bool = True):
     # Load Data
     console.print(f"\n[bold]Loading up to {max_docs} documents...[/bold]")
     docs = load_documents(dataset_name, split, text_column, max_docs, data_files=data_files)
@@ -97,6 +97,10 @@ def run_benchmark(dataset_name: str, split: str, text_column: str, max_docs: int
             "Index Size (KB)": f"{index_size / 1024:.2f}",
             "Memory Diff (MB)": f"{mem_diff:.2f}"
         })
+        
+        if cleanup:
+            indexer.cleanup()
+            
         console.print(f"Done {name.upper()}.")
 
     # Report

@@ -12,7 +12,8 @@ def benchmark(
     max_docs: int = typer.Option(1000, "--max-docs", "-m", help="Maximum number of documents to index"),
     indexers: str = typer.Option("all", "--indexers", "-i", help="Comma-separated list (e.g., faiss,chroma,qdrant,milvus,lance) or 'all'"),
     model: str = typer.Option("ollama/nomic-embed-text", "--model", help="LiteLLM model name (e.g., 'ollama/nomic-embed-text', 'openai/text-embedding-3-small')"),
-    data_files: str = typer.Option(None, "--data-files", help="Path to local data files (for CSV/JSON formats)")
+    data_files: str = typer.Option(None, "--data-files", help="Path to local data files (for CSV/JSON formats)"),
+    cleanup: bool = typer.Option(True, "--cleanup/--no-cleanup", help="Automatically cleanup temporary index files after benchmarking")
 ):
     """
     Run Embenx benchmarks across different vector indexing libraries.
@@ -21,6 +22,8 @@ def benchmark(
     console.print(f"Dataset: [cyan]{dataset}[/cyan] ({split})")
     if data_files:
         console.print(f"Data Files: [cyan]{data_files}[/cyan]")
+    if not cleanup:
+        console.print(f"Cleanup: [yellow]Disabled[/yellow]")
     console.print(f"Max Docs: [cyan]{max_docs}[/cyan]")
     console.print(f"Model: [cyan]{model}[/cyan]")
     console.print(f"Indexers: [cyan]{indexers}[/cyan]")
@@ -42,7 +45,8 @@ def benchmark(
         indexer_names=selected_indexers,
         model_name=model,
         console=console,
-        data_files=data_files
+        data_files=data_files,
+        cleanup=cleanup
     )
 
 @app.command()

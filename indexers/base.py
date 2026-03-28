@@ -26,3 +26,9 @@ class BaseIndexer(ABC):
         Return the approximate memory footprint or disk size in bytes.
         """
         pass
+
+    def cleanup(self) -> None:
+        """
+        Optional method to clean up temporary resources or files.
+        """
+        pass

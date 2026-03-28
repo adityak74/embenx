@@ -69,3 +69,7 @@ class MilvusIndexer(BaseIndexer):
         if os.path.exists(self.temp_file.name):
             return os.path.getsize(self.temp_file.name)
         return 0
+
+    def cleanup(self) -> None:
+        if os.path.exists(self.temp_file.name):
+            os.remove(self.temp_file.name)
