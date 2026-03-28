@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module indexers.qdrant_indexer</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="indexers.html" class="white">indexers</a>.qdrant_indexer</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="file:/Users/adityakarnam/Research/indexing_libs/indexers/qdrant_indexer.py">/Users/adityakarnam/Research/indexing_libs/indexers/qdrant_indexer.py</a></td></tr></table>
+    <p></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="qdrant_client.html">qdrant_client</a><br>
+</td><td class="multicolumn"><a href="uuid.html">uuid</a><br>
+</td><td class="multicolumn"></td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="indexers.base.html#BaseIndexer">indexers.base.BaseIndexer</a>(<a href="abc.html#ABC">abc.ABC</a>)
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="indexers.qdrant_indexer.html#QdrantIndexer">QdrantIndexer</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="QdrantIndexer">class <strong>QdrantIndexer</strong></a>(<a href="indexers.base.html#BaseIndexer">indexers.base.BaseIndexer</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#QdrantIndexer">QdrantIndexer</a>(dimension:&nbsp;int)<br>
+&nbsp;<br>
+<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt>Method resolution order:</dt>
+<dd><a href="indexers.qdrant_indexer.html#QdrantIndexer">QdrantIndexer</a></dd>
+<dd><a href="indexers.base.html#BaseIndexer">indexers.base.BaseIndexer</a></dd>
+<dd><a href="abc.html#ABC">abc.ABC</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="QdrantIndexer-__init__"><strong>__init__</strong></a>(self, dimension: int)</dt><dd><span class="code">Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</span></dd></dl>
+
+<dl><dt><a name="QdrantIndexer-build_index"><strong>build_index</strong></a>(self, embeddings: List[List[float]], metadata: List[Dict[str, Any]]) -&gt; None</dt><dd><span class="code">Build&nbsp;or&nbsp;insert&nbsp;embeddings&nbsp;into&nbsp;the&nbsp;index.</span></dd></dl>
+
+<dl><dt><a name="QdrantIndexer-get_size"><strong>get_size</strong></a>(self) -&gt; int</dt><dd><span class="code">Return&nbsp;the&nbsp;approximate&nbsp;memory&nbsp;footprint&nbsp;or&nbsp;disk&nbsp;size&nbsp;in&nbsp;bytes.</span></dd></dl>
+
+<dl><dt><a name="QdrantIndexer-search"><strong>search</strong></a>(self, query_embedding: List[float], top_k: int = 5) -&gt; List[Tuple[Dict[str, Any], float]]</dt><dd><span class="code">Search&nbsp;the&nbsp;index&nbsp;and&nbsp;return&nbsp;a&nbsp;list&nbsp;of&nbsp;(metadata,&nbsp;distance/score)&nbsp;tuples.</span></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__abstractmethods__</strong> = frozenset()</dl>
+
+<dl><dt><strong>__annotations__</strong> = {}</dl>
+
+<hr>
+Data descriptors inherited from <a href="indexers.base.html#BaseIndexer">indexers.base.BaseIndexer</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>Dict</strong> = typing.Dict<br>
+<strong>List</strong> = typing.List<br>
+<strong>Tuple</strong> = typing.Tuple</td></tr></table>
+</body></html>

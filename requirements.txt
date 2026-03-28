@@ -1,0 +1,11 @@
+litellm
+typer
+rich
+datasets
+psutil
+faiss-cpu
+chromadb
+qdrant-client
+pymilvus
+lancedb
+pyarrow
