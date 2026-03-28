@@ -1,24 +1,37 @@
 # Embenx 🚀
 
-A minimal, fast, and flexible Python CLI for benchmarking vector indexing libraries. Compare **FAISS, Chroma, Qdrant, Milvus, and LanceDB** using your own data or HuggingFace datasets with local or cloud-based embeddings.
+[![GitHub stars](https://img.shields.io/github/stars/adityak74/embenx.svg?style=flat-square)](https://github.com/adityak74/embenx/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/adityak74/embenx.svg?style=flat-square)](https://github.com/adityak74/embenx/issues)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg?style=flat-square)](https://www.python.org/downloads/)
+[![Ollama Support](https://img.shields.io/badge/Ollama-Supported-orange.svg?style=flat-square)](https://ollama.com/)
+
+**Embenx** is a minimal, ultra-fast, and flexible CLI for benchmarking vector indexing libraries. Compare **FAISS, Chroma, Qdrant, Milvus, and LanceDB** using your own data or HuggingFace datasets with local or cloud-based embeddings.
+
+[Explore Documentation](docs/index.html) · [Report Bug](https://github.com/adityak74/embenx/issues) · [Request Feature](https://github.com/adityak74/embenx/issues)
 
 ---
 
 ## 🌟 Key Features
-- **Universal LLM Support**: Powered by `LiteLLM`—seamlessly works with Ollama (local), OpenAI, Anthropic, and more.
-- **Instant Datasets**: Direct integration with HuggingFace `datasets` (support for remote and local data).
-- **Comprehensive Metrics**: Track build time, query latency, index footprint, and memory overhead in a beautiful terminal dashboard.
-- **Modular & Fast**: Designed as a surgical tool for developers to evaluate search infrastructure.
+
+- **⚡ Universal LLM Support**: Powered by `LiteLLM`—seamlessly works with Ollama (local), OpenAI, Anthropic, and more.
+- **📦 Instant Datasets**: Direct integration with HuggingFace `datasets` (supports remote repositories and local CSV/JSON/JSONL).
+- **📊 Comprehensive Metrics**: Track **Build Time**, **Query Latency**, **Index Footprint**, and **Memory Overhead** in a beautiful terminal dashboard.
+- **🛠 Modular Architecture**: Easily evaluate and swap indexing backends to find the perfect fit for your production needs.
 
 ## 📋 Prerequisites
+
 - **Python 3.9+**
-- **Ollama** (Optional, for local embeddings): [Install Ollama](https://ollama.com/) and pull a model:
+- **Ollama** (Optional, for zero-cost local embeddings): [Install Ollama](https://ollama.com/) and pull a model:
   ```bash
   ollama pull nomic-embed-text
   ```
 - **Cloud API Keys** (Optional): Set `OPENAI_API_KEY` or other provider keys for cloud-based embeddings.
 
-## 🚀 Installation
+## 🚀 Quick Start
+
+### 1. Installation
+
 ```bash
 # Clone the repository
 git clone https://github.com/adityak74/embenx.git
@@ -27,48 +40,63 @@ cd embenx
 # Install core dependencies
 pip install -r requirements.txt
 
-# (Optional) Install Milvus-lite for local benchmarking
+# (Optional) Install Milvus-lite for local SQLite-based benchmarking
 pip install milvus-lite
 ```
 
-## 🛠 Usage
-
-### 1. List Supported Indexers
+### 2. List Supported Indexers
 ```bash
 python3 cli.py list-indexers
 ```
 
-### 2. Run a Benchmark
-The CLI uses the [LiteLLM model format](https://docs.litellm.ai/docs/embedding/supported_embedding).
+### 3. Run Your First Benchmark
+Compare all indexers using the SQuAD dataset via local Ollama:
 
 ```bash
-# Benchmark all indexers using the SQuAD dataset via local Ollama
 python3 cli.py benchmark --dataset squad --max-docs 100 --model ollama/nomic-embed-text
-
-# Compare performance with high-dimensional models
-python3 cli.py benchmark --dataset squad --max-docs 10 --model ollama/qwen3-embedding
-
-# Use local data (e.g., a local JSONL file)
-python3 cli.py benchmark --dataset json --data-files my_data.jsonl --text-column content
 ```
 
-### ⚙️ Parameters
-- `--dataset` / `-d`: HuggingFace dataset name or a data format (e.g., `csv`, `json`).
-- `--text-column` / `-c`: The column to embed (default: `text`).
-- `--max-docs` / `-m`: Number of documents to index (default: `1000`).
-- `--indexers` / `-i`: Comma-separated list (`faiss,chroma,qdrant,lance,milvus`) or `all`.
-- `--model`: LiteLLM model string (default: `ollama/nomic-embed-text`).
+## 🛠 Advanced Usage
+
+### Local Data Benchmarking
+Benchmark your own private data files (CSV, JSON, JSONL):
+```bash
+python3 cli.py benchmark --dataset json --data-files ./my_data.jsonl --text-column content
+```
+
+### High-Dimensional Comparison
+Evaluate how different models (e.g., 768 vs 4096 dimensions) impact indexing performance:
+```bash
+python3 cli.py benchmark --dataset squad --max-docs 10 --model ollama/qwen3-embedding
+```
+
+## ⚙️ Parameters
+
+| Flag | Description | Default |
+| :--- | :--- | :--- |
+| `--dataset` / `-d` | HuggingFace dataset name or format (`csv`, `json`). | *Required* |
+| `--text-column` / `-c` | The column to embed and index. | `text` |
+| `--max-docs` / `-m` | Number of documents to index. | `1000` |
+| `--indexers` / `-i` | Comma-separated list (`faiss,chroma,qdrant,lance,milvus`) or `all`. | `all` |
+| `--model` | LiteLLM model string. | `ollama/nomic-embed-text` |
+| `--data-files` | Path to local data files. | `None` |
 
 ## 📊 Output Metrics
-The tool generates a comparative table with the following metrics:
-- **Build Time (s)**: The total time to embed documents and build the index.
-- **Query Time (ms/query)**: Average search latency over a representative set of queries.
-- **Index Size (KB)**: The estimated memory or disk footprint of the index.
-- **Memory Added (MB)**: The actual change in process memory usage during indexing.
 
-## 📚 Documentation & Examples
-- **HTML Reference**: Open `docs/index.html` in your browser for the full API documentation.
-- **Shell Example**: Run `./examples/ollama_benchmark.sh` for a quick demonstration.
+| Metric | What it measures |
+| :--- | :--- |
+| **Build Time (s)** | Total time to embed documents and build the index structure. |
+| **Query Time (ms/query)** | Average search latency over 10 test queries. |
+| **Index Size (KB)** | Estimated memory or disk footprint of the final index. |
+| **Memory Added (MB)** | Real-time change in process RAM usage during the indexing phase. |
+
+## 🤝 Contributing
+
+Contributions are welcome! Whether it's adding a new indexer, improving metrics, or fixing bugs, please feel free to open a Pull Request.
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
-Built with ❤️ for the AI engineering community.
+Built with ❤️ for the AI engineering community by [adityak74](https://github.com/adityak74).
