@@ -50,12 +50,15 @@ Alternatively, using standard pip:
 pip install .
 ```
 
-### 1. List Supported Indexers, Cleanup & Help
+### 1. Setup, Cleanup & Help
 ```bash
+# Generate a SKILL.md for AI agents (Claude, Gemini, etc.)
+uv run embenx init-skill
+
 # List available indexing backends
 uv run embenx list-indexers
 
-# Manually purge leftover benchmark artifacts (*.db, *.lance, etc.)
+# Manually purge leftover benchmark artifacts
 uv run embenx cleanup
 
 # Display the help menu
