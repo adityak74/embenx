@@ -64,7 +64,7 @@ This skill enables the agent to perform high-performance benchmarking of vector 
 - **Objective**: Assist the user in evaluating and comparing vector search backends (FAISS, Chroma, Qdrant, Milvus, LanceDB).
 - **Core Workflow**:
     1. **Identify Requirements**: Determine the user's dataset (HuggingFace name or local path) and the indexing libraries they wish to compare.
-    2. **Check Availability**: Always run `uv run embenx list-indexers` first to see which backends are supported in the current environment.
+    2. **Check Environment**: Always run `uv run embenx setup` first — it verifies installed indexers and checks the embedding model is ready. Pass `--pull` to auto-pull a missing Ollama model.
     3. **Execute Benchmark**:
         - For standard HF datasets: `uv run embenx benchmark --dataset <name> --max-docs <num>`.
         - For local data: `uv run embenx benchmark --dataset json --data-files <path> --text-column <col>`.
@@ -129,6 +129,77 @@ def cleanup():
         console.print("[cyan]No artifacts found. Workspace is clean.[/cyan]")
     else:
         console.print(f"[bold green]Successfully removed {removed_count} artifacts.[/bold green]")
+
+@app.command()
+def setup(
+    model: str = typer.Option("ollama/nomic-embed-text", "--model", help="LiteLLM model to verify (e.g., 'ollama/nomic-embed-text')"),
+    pull: bool = typer.Option(False, "--pull", help="Pull the Ollama model if not already available"),
+):
+    """
+    Check that the environment is ready for benchmarking.
+
+    Verifies installed indexers and (for Ollama models) that the Ollama
+    server is reachable and the requested model is available.
+    """
+    import importlib
+
+    indexer_deps = {
+        "faiss": "faiss",
+        "chroma": "chromadb",
+        "qdrant": "qdrant_client",
+        "milvus": "pymilvus",
+        "lance": "lancedb",
+    }
+
+    console.print("\n[bold cyan]Embenx Environment Check[/bold cyan]\n")
+
+    # --- Indexers ---
+    console.print("[bold]Indexers:[/bold]")
+    all_ok = True
+    for name, pkg in indexer_deps.items():
+        try:
+            importlib.import_module(pkg)
+            console.print(f"  [green]✓[/green] {name} ({pkg})")
+        except ImportError:
+            console.print(f"  [yellow]✗[/yellow] {name} — not installed  [dim](uv pip install {pkg})[/dim]")
+            all_ok = False
+
+    # --- Ollama ---
+    if model.startswith("ollama/"):
+        model_name = model.split("/", 1)[1]
+        console.print(f"\n[bold]Ollama ({model_name}):[/bold]")
+        try:
+            import subprocess
+            result = subprocess.run(["ollama", "list"], capture_output=True, text=True, timeout=5)
+            if result.returncode != 0:
+                raise RuntimeError("ollama list failed")
+
+            available_models = result.stdout
+            if model_name in available_models:
+                console.print(f"  [green]✓[/green] Ollama is running and '{model_name}' is available")
+            else:
+                console.print(f"  [yellow]✗[/yellow] Ollama is running but '{model_name}' is not pulled")
+                if pull:
+                    console.print(f"  [cyan]→[/cyan] Pulling {model_name}...")
+                    subprocess.run(["ollama", "pull", model_name], check=True)
+                    console.print(f"  [green]✓[/green] '{model_name}' pulled successfully")
+                else:
+                    console.print(f"  [dim]  Run: ollama pull {model_name}  (or pass --pull)[/dim]")
+                    all_ok = False
+        except FileNotFoundError:
+            console.print("  [red]✗[/red] Ollama is not installed or not in PATH")
+            console.print("  [dim]  Install from https://ollama.com[/dim]")
+            all_ok = False
+        except Exception as e:
+            console.print(f"  [red]✗[/red] Could not reach Ollama: {e}")
+            all_ok = False
+
+    console.print()
+    if all_ok:
+        console.print("[bold green]✓ Environment is ready for benchmarking.[/bold green]")
+    else:
+        console.print("[bold yellow]⚠ Fix the issues above before running a benchmark.[/bold yellow]")
+
 
 @app.command()
 def list_indexers():
