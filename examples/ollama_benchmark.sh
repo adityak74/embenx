@@ -12,12 +12,22 @@ INDEXERS="faiss,lancedb,chroma"
 
 echo "🚀 Starting Embenx benchmark with model: $MODEL..."
 
-python3 cli.py benchmark \
-    --dataset "$DATASET" \
-    --text-column "$TEXT_COLUMN" \
-    --max-docs "$MAX_DOCS" \
-    --indexers "$INDEXERS" \
-    --model "$MODEL"
+# Check if uv is available
+if command -v uv > /dev/null; then
+    uv run embenx benchmark \
+        --dataset "$DATASET" \
+        --text-column "$TEXT_COLUMN" \
+        --max-docs "$MAX_DOCS" \
+        --indexers "$INDEXERS" \
+        --model "$MODEL"
+else
+    python3 cli.py benchmark \
+        --dataset "$DATASET" \
+        --text-column "$TEXT_COLUMN" \
+        --max-docs "$MAX_DOCS" \
+        --indexers "$INDEXERS" \
+        --model "$MODEL"
+fi
 
 if [ $? -eq 0 ]; then
     echo "✅ Benchmark completed successfully."

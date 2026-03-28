@@ -32,20 +32,30 @@
 
 ### 1. Installation
 
+Using [uv](https://github.com/astral-sh/uv) (recommended):
 ```bash
 # Clone the repository
 git clone https://github.com/adityak74/embenx.git
 cd embenx
 
-# Install core dependencies
-pip install -r requirements.txt
+# Install and create virtual environment in one go
+uv sync
 
 # (Optional) Install Milvus-lite for local SQLite-based benchmarking
-pip install milvus-lite
+uv pip install milvus-lite
+```
+
+Alternatively, using standard pip:
+```bash
+pip install .
 ```
 
 ### 2. List Supported Indexers
 ```bash
+# After 'uv sync', use the built-in command
+uv run embenx list-indexers
+
+# Or use the python file directly
 python3 cli.py list-indexers
 ```
 
@@ -53,7 +63,7 @@ python3 cli.py list-indexers
 Compare all indexers using the SQuAD dataset via local Ollama:
 
 ```bash
-python3 cli.py benchmark --dataset squad --max-docs 100 --model ollama/nomic-embed-text
+uv run embenx benchmark --dataset squad --max-docs 100 --model ollama/nomic-embed-text
 ```
 
 ## 🛠 Advanced Usage
@@ -61,7 +71,7 @@ python3 cli.py benchmark --dataset squad --max-docs 100 --model ollama/nomic-emb
 ### Local Data Benchmarking
 Benchmark your own private data files (CSV, JSON, JSONL):
 ```bash
-python3 cli.py benchmark --dataset json --data-files ./my_data.jsonl --text-column content
+uv run embenx benchmark --dataset json --data-files ./my_data.jsonl --text-column content
 ```
 
 ### High-Dimensional Comparison
