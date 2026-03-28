@@ -50,6 +50,44 @@ def benchmark(
     )
 
 @app.command()
+def help(ctx: typer.Context):
+    """
+    Display the help menu for Embenx.
+    """
+    typer.echo(ctx.parent.get_help())
+
+@app.command()
+def cleanup():
+    """
+    Manually remove any leftover benchmark artifacts (*.db, *.lance, etc.)
+    """
+    import os
+    import shutil
+    import glob
+    
+    console.print("[bold yellow]Cleaning up benchmark artifacts...[/bold yellow]")
+    
+    patterns = ["*.db", "*.lance", "benchmark", "benchmark.lance"]
+    removed_count = 0
+    
+    for pattern in patterns:
+        for path in glob.glob(pattern):
+            try:
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+                console.print(f" [green]✓[/green] Removed: {path}")
+                removed_count += 1
+            except Exception as e:
+                console.print(f" [red]✗[/red] Failed to remove {path}: {e}")
+                
+    if removed_count == 0:
+        console.print("[cyan]No artifacts found. Workspace is clean.[/cyan]")
+    else:
+        console.print(f"[bold green]Successfully removed {removed_count} artifacts.[/bold green]")
+
+@app.command()
 def list_indexers():
     """
     List available indexing libraries for benchmarking.

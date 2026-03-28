@@ -50,14 +50,18 @@ Alternatively, using standard pip:
 pip install .
 ```
 
-### 2. List Supported Indexers
+### 1. List Supported Indexers, Cleanup & Help
 ```bash
-# After 'uv sync', use the built-in command
+# List available indexing backends
 uv run embenx list-indexers
 
-# Or use the python file directly
-python3 cli.py list-indexers
+# Manually purge leftover benchmark artifacts (*.db, *.lance, etc.)
+uv run embenx cleanup
+
+# Display the help menu
+uv run embenx help
 ```
+
 
 ### 3. Run Your First Benchmark
 Compare all indexers using the SQuAD dataset via local Ollama:
