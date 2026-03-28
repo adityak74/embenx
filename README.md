@@ -49,7 +49,7 @@ python3 cli.py benchmark --dataset squad --max-docs 100 --model ollama/nomic-emb
 python3 cli.py benchmark --dataset squad --max-docs 10 --model ollama/qwen3-embedding
 
 # Use local data (e.g., a local JSONL file)
-python3 cli.py benchmark --dataset json --data_files my_data.jsonl --text-column content
+python3 cli.py benchmark --dataset json --data-files my_data.jsonl --text-column content
 ```
 
 ### ⚙️ Parameters
