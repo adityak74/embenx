@@ -1,13 +1,16 @@
 from datasets import load_dataset
 from typing import List, Dict
 
-def load_documents(dataset_name: str, split: str, text_column: str, max_docs: int) -> List[Dict]:
+def load_documents(dataset_name: str, split: str, text_column: str, max_docs: int, data_files: str = None) -> List[Dict]:
     """
-    Load documents from a HuggingFace dataset.
+    Load documents from a HuggingFace dataset or local files.
     Returns a list of dicts: [{"id": idx, "text": "...", "metadata": {...}}]
     """
     try:
-        ds = load_dataset(dataset_name, split=split)
+        if data_files:
+            ds = load_dataset(dataset_name, data_files=data_files, split=split)
+        else:
+            ds = load_dataset(dataset_name, split=split)
     except Exception as e:
         raise RuntimeError(f"Failed to load dataset '{dataset_name}': {e}")
     

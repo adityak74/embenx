@@ -18,10 +18,10 @@ def get_memory_usage():
     process = psutil.Process(os.getpid())
     return process.memory_info().rss / 1024 / 1024  # MB
 
-def run_benchmark(dataset_name: str, split: str, text_column: str, max_docs: int, indexer_names: List[str], model_name: str, console: Console):
+def run_benchmark(dataset_name: str, split: str, text_column: str, max_docs: int, indexer_names: List[str], model_name: str, console: Console, data_files: str = None):
     # Load Data
-    console.print(f"\n[bold]Loading up to {max_docs} documents from '{dataset_name}'...[/bold]")
-    docs = load_documents(dataset_name, split, text_column, max_docs)
+    console.print(f"\n[bold]Loading up to {max_docs} documents...[/bold]")
+    docs = load_documents(dataset_name, split, text_column, max_docs, data_files=data_files)
     console.print(f"Loaded {len(docs)} documents.")
 
     if not docs:
