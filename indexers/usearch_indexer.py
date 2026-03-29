@@ -9,25 +9,41 @@ from .base import BaseIndexer
 
 
 class USearchIndexer(BaseIndexer):
-    def __init__(self, dimension: int):
-        super().__init__("USearch", dimension)
-        self.index = Index(ndim=dimension, metric="cos")
+    def __init__(self, dimension: int, dtype: str = "f32"):
+        """
+        dtype can be: "f32", "f16", "f64", "i8", "b1"
+        """
+        super().__init__(f"USearch-{dtype}", dimension)
+        self.dtype = dtype.lower()
+        self.index = Index(ndim=dimension, metric="cos", dtype=self.dtype)
         self.metadata = []
         self.temp_file = tempfile.NamedTemporaryFile(suffix=".usearch", delete=False)
 
     def build_index(self, embeddings: List[List[float]], metadata: List[Dict[str, Any]]) -> None:
-        vectors = np.array(embeddings).astype(np.float32)
-        # USearch uses integer IDs, we'll use the index in the list
+        if self.dtype == "i8":
+            # Scale floats to i8 range [-128, 127]
+            vectors = np.array(embeddings)
+            vectors = (vectors * 127).astype(np.int8)
+        elif self.dtype == "f16":
+            vectors = np.array(embeddings).astype(np.float16)
+        else:
+            vectors = np.array(embeddings).astype(np.float32)
+            
         ids = np.arange(len(vectors))
         self.index.add(ids, vectors)
         self.metadata = metadata
-        # Save to temp file to track size
         self.index.save(self.temp_file.name)
 
     def search(
         self, query_embedding: List[float], top_k: int = 5
     ) -> List[Tuple[Dict[str, Any], float]]:
-        query = np.array(query_embedding).astype(np.float32)
+        if self.dtype == "i8":
+            query = (np.array(query_embedding) * 127).astype(np.int8)
+        elif self.dtype == "f16":
+            query = np.array(query_embedding).astype(np.float16)
+        else:
+            query = np.array(query_embedding).astype(np.float32)
+            
         matches = self.index.search(query, top_k)
         
         results = []

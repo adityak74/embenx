@@ -4,7 +4,7 @@
 
 <p>
   <strong>Minimal, ultra-fast CLI for benchmarking vector indexing libraries.</strong><br/>
-  Compare FAISS (Flat, IVF, HNSW), Chroma, Qdrant, Milvus, LanceDB, Weaviate, DuckDB, USearch, Annoy, HNSWLib, ScaNN, Vespa, Elasticsearch, and pgvector with any dataset.
+  Compare FAISS (Flat, IVF, HNSW, SQ8, PQ), Chroma, Qdrant, Milvus, LanceDB, Weaviate, DuckDB, USearch (F32, F16, I8), Annoy, HNSWLib, ScaNN, Vespa, Elasticsearch, and pgvector with any dataset.
 </p>
 
 <p>
