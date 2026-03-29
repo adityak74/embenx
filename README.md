@@ -4,7 +4,7 @@
 
 <p>
   <strong>Minimal, ultra-fast CLI for benchmarking vector indexing libraries.</strong><br/>
-  Compare FAISS, Chroma, Qdrant, Milvus, and LanceDB with any dataset — local or HuggingFace.
+  Compare FAISS, Chroma, Qdrant, Milvus, LanceDB, Weaviate, and DuckDB with any dataset — local or HuggingFace.
 </p>
 
 <p>
@@ -38,15 +38,18 @@ chroma        1.10       3.21       1200        41.0
 qdrant        2.31       1.94       4800        64.2
 lance         0.55       2.10        310        22.0
 milvus        3.74       2.60       2400        87.0
+weaviate      1.04       1.02        593         0.2
+duckdb        0.01       5.95         15         2.1
 ```
 
 ## Features
 
 - **Universal model support** — Ollama (local, free), OpenAI, Anthropic, and any LiteLLM provider
 - **Any dataset** — HuggingFace datasets or local CSV / JSON / JSONL files
+- **Custom indexer scripts** — benchmark your own implementations by providing a script path
 - **Four metrics** — build time, query latency, index footprint, memory overhead
 - **Environment setup** — `embenx setup` checks all dependencies in one command
-- **AI-agent ready** — ships with `embenx init-skill` to generate a `SKILL.md` for Claude and other agents
+- **AI-agent ready** — ships with `embenx init-skill` to generate a `SKILL.md` for AI agents
 
 ## Installation
 
@@ -60,11 +63,6 @@ uv sync
 **pip:**
 ```bash
 pip install .
-```
-
-**Optional — Milvus support:**
-```bash
-uv pip install milvus-lite
 ```
 
 ## Quick Start
@@ -89,11 +87,29 @@ uv run embenx benchmark \
   --max-docs 500
 ```
 
-### 4. Compare embedding models
+### 4. Custom Indexers
+Embenx allows you to benchmark your own indexing implementations. Create a Python script that inherits from `BaseIndexer` and pass it to the CLI.
+
+```python
+# my_indexer.py
+from indexers.base import BaseIndexer
+
+class MyCustomIndexer(BaseIndexer):
+    def build_index(self, embeddings, metadata):
+        # Your logic here
+        pass
+
+    def search(self, query_embedding, top_k=5):
+        # Your logic here
+        return []
+
+    def get_size(self):
+        return 0
+```
+
+Run it with:
 ```bash
-# Run twice with different models to compare dimension/speed tradeoffs
-uv run embenx benchmark --dataset squad --max-docs 200 --model ollama/nomic-embed-text
-uv run embenx benchmark --dataset squad --max-docs 200 --model ollama/qwen3-embedding
+uv run embenx benchmark --custom-indexer ./my_indexer.py --indexers mycustomindexer
 ```
 
 ## CLI Reference
@@ -110,6 +126,7 @@ uv run embenx benchmark --dataset squad --max-docs 200 --model ollama/qwen3-embe
 | `--model` | LiteLLM model string | `ollama/nomic-embed-text` |
 | `--data-files` | Path to local file(s) | — |
 | `--no-cleanup` | Keep index files on disk after the run | — |
+| `--custom-indexer` | Path to a Python script with a custom indexer class | — |
 
 ### Other commands
 
@@ -147,16 +164,6 @@ Contributions are welcome and appreciated! Here's how to get started:
 3. **Make your changes** — new indexers, metrics, bug fixes, or docs
 4. **Test** your changes: `uv run embenx benchmark --dataset squad --max-docs 50`
 5. **Open a Pull Request** with a clear description of what changed and why
-
-### Ideas for contributions
-
-- Add a new vector indexer backend (e.g., Weaviate, Pinecone, pgvector)
-- Add new output metrics (e.g., recall@k, P95 latency)
-- Improve the terminal dashboard output
-- Add more example scripts under `examples/`
-- Improve documentation
-
-If you're unsure whether something is a good fit, [open an issue](https://github.com/adityak74/embenx/issues) first and we can discuss it.
 
 ## License
 
