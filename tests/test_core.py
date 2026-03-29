@@ -77,6 +77,16 @@ def test_collection_reranking():
     assert results[0][0]["id"] == 3
     assert results[1][0]["id"] == 2
 
+def test_collection_benchmark():
+    col = Collection(dimension=4)
+    vectors = np.random.rand(10, 4).astype(np.float32)
+    col.add(vectors)
+    
+    # Benchmark a subset of indexers
+    results = col.benchmark(indexers=["faiss", "simple"])
+    assert len(results) == 2
+    assert any(r["Indexer"] == "FAISS" for r in results)
+
 def test_collection_from_numpy(tmp_path):
     path = os.path.join(tmp_path, "test.npy")
     vectors = np.random.rand(10, 4).astype(np.float32)

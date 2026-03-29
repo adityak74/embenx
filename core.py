@@ -35,28 +35,30 @@ class Collection:
         indexer_map = get_indexer_map()
         if self.indexer_type not in indexer_map:
             raise ValueError(f"Indexer type '{self.indexer_type}' not found.")
-        
+
         indexer_cls = indexer_map[self.indexer_type]
         self.indexer = indexer_cls(dimension=dimension, **self.indexer_kwargs)
         self.dimension = dimension
 
     def add(
-        self, 
-        vectors: Union[np.ndarray, List[List[float]]], 
-        metadata: Optional[List[Dict[str, Any]]] = None
+        self,
+        vectors: Union[np.ndarray, List[List[float]]],
+        metadata: Optional[List[Dict[str, Any]]] = None,
     ):
         """Add vectors and metadata to the collection."""
         vectors = np.array(vectors).astype(np.float32)
         if self.dimension is None:
             self._init_indexer(vectors.shape[1])
         elif vectors.shape[1] != self.dimension:
-            raise ValueError(f"Vector dimension mismatch. Expected {self.dimension}, got {vectors.shape[1]}")
+            raise ValueError(
+                f"Vector dimension mismatch. Expected {self.dimension}, got {vectors.shape[1]}"
+            )
 
         meta = metadata or [{} for _ in range(len(vectors))]
-        
+
         # Build/Update index
         self.indexer.build_index(vectors.tolist(), meta)
-        
+
         # Keep local copy for I/O and non-native operations
         if self._vectors is None:
             self._vectors = vectors
@@ -65,15 +67,15 @@ class Collection:
         self._metadata.extend(meta)
 
     def search(
-        self, 
-        query: Union[np.ndarray, List[float]], 
+        self,
+        query: Union[np.ndarray, List[float]],
         top_k: int = 5,
         where: Optional[Dict[str, Any]] = None,
-        reranker: Optional[callable] = None
+        reranker: Optional[callable] = None,
     ) -> List[Tuple[Dict[str, Any], float]]:
         """
         Search the collection for the nearest neighbors.
-        
+
         Args:
             query: Vector to search for.
             top_k: Number of results to return.
@@ -82,14 +84,14 @@ class Collection:
         """
         if self.indexer is None:
             raise RuntimeError("Collection is empty. Add data before searching.")
-        
+
         # Increase search limit if reranking or filtering is requested
         search_k = top_k
         if where or reranker:
             search_k = max(top_k * 10, 100)
-        
+
         query_vec = np.array(query).astype(np.float32)
-        
+
         def _process_single(q):
             results = self.indexer.search(q.tolist(), top_k=search_k)
             if where:
@@ -102,6 +104,49 @@ class Collection:
             return _process_single(query_vec)
         else:
             return [_process_single(q) for q in query_vec]
+
+    def benchmark(self, indexers: Optional[List[str]] = None, top_k: int = 5):
+        """
+        Benchmark multiple indexers on the current collection data.
+
+        Args:
+            indexers: List of indexer names to compare (e.g. ["faiss", "hnswlib"]).
+                      If None, benchmarks all available indexers.
+            top_k: Number of neighbors to search for during benchmark.
+        """
+        if self._vectors is None:
+            raise RuntimeError("Collection is empty. Add data before benchmarking.")
+
+        from benchmark import benchmark_single_indexer, display_results
+        from indexers import get_indexer_map
+        from rich.console import Console
+
+        console = Console()
+        indexer_map = get_indexer_map()
+
+        if indexers is None:
+            selected = list(indexer_map.keys())
+        else:
+            selected = [i.lower() for i in indexers if i.lower() in indexer_map]
+
+        results = []
+        for name in selected:
+            # We use a subset of current data as queries for the benchmark
+            query_embeddings = self._vectors[: min(10, len(self._vectors))].tolist()
+            res = benchmark_single_indexer(
+                name,
+                indexer_map[name],
+                self.dimension,
+                self._vectors.tolist(),
+                self._metadata,
+                console,
+            )
+            if res:
+                results.append(res)
+
+        if results:
+            display_results(results, console)
+        return results
 
     def _apply_filter(self, results: List[Tuple[Dict[str, Any], float]], where: Dict[str, Any]):
         filtered = []
@@ -142,7 +187,7 @@ class Collection:
         """Save the collection to a Parquet file."""
         if self._vectors is None:
             raise RuntimeError("Collection is empty.")
-        
+
         df = pd.DataFrame(self._metadata)
         df[vector_col] = list(self._vectors)
         df.to_parquet(path)
