@@ -1,6 +1,11 @@
 API Reference
 =============
 
+.. automodule:: core
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: benchmark
    :members:
    :undoc-members:
