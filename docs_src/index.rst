@@ -1,7 +1,7 @@
 Embenx Documentation 🚀
 ========================
 
-Python-native embedding retrieval layer.
+Universal embedding retrieval toolkit & benchmark. Search, filter, and rerank across 15+ vector backends (FAISS, ScaNN, pgvector, etc.) with a unified Python API and CLI.
 
 .. toctree::
    :maxdepth: 2

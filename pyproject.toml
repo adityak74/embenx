@@ -1,7 +1,7 @@
 [project]
 name = "embenx"
 version = "0.0.1"
-description = "A minimal, ultra-fast, and flexible CLI for benchmarking vector indexing libraries."
+description = "Universal embedding retrieval toolkit & benchmark. Search, filter, and rerank across 15+ vector backends with a unified Python API and CLI."
 authors = [{ name = "adityak74", email = "adityakarnam@gmail.com" }]
 license = { text = "MIT" }
 readme = "README.md"

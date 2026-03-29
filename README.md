@@ -3,8 +3,8 @@
 <h1>Embenx 🚀</h1>
 
 <p>
-  <strong>Python-native embedding retrieval layer.</strong><br/>
-  High-performance vector search, filtering, and reranking with zero database overhead.
+  <strong>Universal embedding retrieval toolkit & benchmark.</strong><br/>
+  Search, filter, and rerank across 15+ vector backends (FAISS, ScaNN, pgvector, etc.) with a unified Python API and CLI.
 </p>
 
 <p>
