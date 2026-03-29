@@ -1,7 +1,7 @@
-import os
-import time
 import importlib.util
 import inspect
+import os
+import time
 from typing import List
 
 import psutil
@@ -9,14 +9,7 @@ from rich.console import Console
 from rich.table import Table
 
 from data import load_documents
-from indexers.base import BaseIndexer
-from indexers.chroma_indexer import ChromaIndexer
-from indexers.duckdb_indexer import DuckDBIndexer
-from indexers.faiss_indexer import FaissIndexer
-from indexers.lance_indexer import LanceIndexer
-from indexers.milvus_indexer import MilvusIndexer
-from indexers.qdrant_indexer import QdrantIndexer
-from indexers.weaviate_indexer import WeaviateIndexer
+from indexers import BaseIndexer, get_indexer_map
 from llm import Embedder
 
 
@@ -34,14 +27,14 @@ def load_custom_indexer(script_path: str, console: Console):
         if spec is None or spec.loader is None:
             console.print(f"[red]Could not load spec for {script_path}[/red]")
             return None, None
-            
+
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        
+
         for name, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and issubclass(obj, BaseIndexer) and obj is not BaseIndexer:
                 return name, obj
-                
+
         console.print(f"[red]No class inheriting from BaseIndexer found in {script_path}[/red]")
         return None, None
     except Exception as e:
@@ -49,9 +42,7 @@ def load_custom_indexer(script_path: str, console: Console):
         return None, None
 
 
-def benchmark_single_indexer(
-    name, indexer_cls, dimension, embeddings, metadata, console, cleanup=True
-):
+def benchmark_single_indexer(name, indexer_cls, dimension, embeddings, metadata, console, cleanup=True):
     console.print(f"\n[bold cyan]--- Benchmarking {name.upper()} ---[/bold cyan]")
     indexer = indexer_cls(dimension=dimension)
 
@@ -129,21 +120,11 @@ def run_benchmark(
         return
 
     dimension = len(embeddings[0])
-    console.print(
-        f"Generated {len(embeddings)} embeddings of dimension {dimension} in {emb_time:.2f}s."
-    )
+    console.print(f"Generated {len(embeddings)} embeddings of dimension {dimension} in {emb_time:.2f}s.")
     console.print(f"Approximate tokens processed: {embedder.total_tokens_approx}")
 
     # Initialize Indexers
-    indexers_map = {
-        "faiss": FaissIndexer,
-        "chroma": ChromaIndexer,
-        "qdrant": QdrantIndexer,
-        "milvus": MilvusIndexer,
-        "lance": LanceIndexer,
-        "weaviate": WeaviateIndexer,
-        "duckdb": DuckDBIndexer,
-    }
+    indexers_map = get_indexer_map()
 
     if custom_indexer_script:
         custom_name, custom_cls = load_custom_indexer(custom_indexer_script, console)

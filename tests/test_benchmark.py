@@ -64,16 +64,18 @@ def test_run_benchmark_no_docs(mock_display, mock_embedder, mock_load, console):
 
 @patch("benchmark.load_documents")
 @patch("benchmark.Embedder")
-@patch("benchmark.FaissIndexer")
+@patch("benchmark.get_indexer_map")
 @patch("benchmark.display_results")
-def test_run_benchmark_full(mock_display, mock_faiss_cls, mock_embedder_cls, mock_load, console):
+def test_run_benchmark_full(mock_display, mock_get_map, mock_embedder_cls, mock_load, console):
     mock_load.return_value = [{"text": "t1", "metadata": {"m": 1}}]
     mock_embedder = mock_embedder_cls.return_value
     mock_embedder.embed_texts.return_value = [[0.1, 0.2]]
     mock_embedder.total_tokens_approx = 10
 
+    mock_faiss_cls = MagicMock()
     mock_faiss = mock_faiss_cls.return_value
     mock_faiss.get_size.return_value = 100
+    mock_get_map.return_value = {"faiss": mock_faiss_cls}
 
     run_benchmark("dataset", "split", "text", 1, ["faiss"], "model", console)
 
