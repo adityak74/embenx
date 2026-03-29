@@ -23,6 +23,7 @@ dependencies = [
     "usearch>=2.9.0",
     "annoy>=1.17.0",
     "hnswlib>=0.8.0",
+    "psycopg2-binary>=2.9.0",
 ]
 
 [tool.ruff]

@@ -184,6 +184,7 @@ def setup(
         "scann": "scann",
         "vespa": "vespa",
         "elasticsearch": "elasticsearch",
+        "pgvector": "psycopg2",
     }
 
     console.print("\n[bold cyan]Embenx Environment Check[/bold cyan]\n")
