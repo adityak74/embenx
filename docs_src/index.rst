@@ -15,7 +15,9 @@ Features
 --------
 
 - **Universal model support** — Ollama, OpenAI, Anthropic, and more via LiteLLM.
-- **Any dataset** — Support for HuggingFace datasets and local files (CSV, JSON, JSONL).
+- **Any dataset** — HuggingFace datasets, local files (CSV, JSON, JSONL, Parquet), and NumPy (.npy, .npz).
+- **Advanced Indexers** — FAISS (Flat, IVF, HNSW), ScaNN, HNSWLib, and more.
+- **Database Support** — Benchmark pgvector (PostgreSQL), Elasticsearch, and Weaviate.
 - **Custom Indexers** — Benchmark your own implementations with simple Python scripts.
 - **Comprehensive Metrics** — Track Build Time, Query Latency, Index Size, and Memory Usage.
 
@@ -36,7 +38,9 @@ Indices and tables
 Available Indexers:
 -------------------
 
-* **faiss**: FAISS (Facebook AI Similarity Search)
+* **faiss**: FAISS (Flat)
+* **faiss-ivf**: FAISS (Inverted File Index)
+* **faiss-hnsw**: FAISS (Hierarchical Navigable Small World)
 * **chroma**: ChromaDB
 * **qdrant**: Qdrant
 * **milvus**: Milvus
@@ -44,11 +48,12 @@ Available Indexers:
 * **weaviate**: Weaviate
 * **duckdb**: DuckDB
 * **usearch**: USearch
-* **annoy**: Annoy (Approximate Nearest Neighbors Oh Yeah)
-* **hnswlib**: HNSWLib (Hierarchical Navigable Small World)
-* **scann**: ScaNN (Scalable Nearest Neighbors)
+* **annoy**: Annoy
+* **hnswlib**: HNSWLib
+* **scann**: ScaNN
 * **vespa**: Vespa
 * **elasticsearch**: Elasticsearch
+* **pgvector**: PostgreSQL (pgvector)
 * **simple**: NumPy-based brute-force baseline
 
 * :ref:`genindex`

@@ -4,7 +4,7 @@
 
 <p>
   <strong>Minimal, ultra-fast CLI for benchmarking vector indexing libraries.</strong><br/>
-  Compare FAISS, Chroma, Qdrant, Milvus, LanceDB, Weaviate, DuckDB, USearch, Annoy, HNSWLib, ScaNN, Vespa, Elasticsearch, and a Simple baseline with any dataset.
+  Compare FAISS (Flat, IVF, HNSW), Chroma, Qdrant, Milvus, LanceDB, Weaviate, DuckDB, USearch, Annoy, HNSWLib, ScaNN, Vespa, Elasticsearch, and pgvector with any dataset.
 </p>
 
 <p>
@@ -17,7 +17,7 @@
 </p>
 
 <p>
-  <a href="docs/index.html">Documentation</a> ·
+  <a href="https://adityak74.github.io/embenx/">Documentation</a> ·
   <a href="https://github.com/adityak74/embenx/issues">Report Bug</a> ·
   <a href="https://github.com/adityak74/embenx/issues">Request Feature</a>
 </p>
@@ -34,18 +34,21 @@ Embenx is a single-command benchmarking tool for vector search backends. Point i
 Indexer   Build(s)  Query(ms)  Index(KB)  Memory(MB)
 --------  --------  ---------  ---------  ----------
 faiss         0.42       0.31        580        18.4
+faiss-hnsw    0.55       0.08        620        22.1
+faiss-ivf     1.20       0.12        590        45.0
 chroma        1.10       3.21       1200        41.0
 qdrant        2.31       1.94       4800        64.2
 lance         0.55       2.10        310        22.0
 milvus        3.74       2.60       2400        87.0
-weaviate      1.04       1.02        593         0.2
-duckdb        0.01       5.95         15         2.1
+pgvector      0.85       1.42        950        12.0
 ```
 
 ## Features
 
 - **Universal model support** — Ollama (local, free), OpenAI, Anthropic, and any LiteLLM provider
-- **Any dataset** — HuggingFace datasets or local CSV / JSON / JSONL files
+- **Any dataset** — HuggingFace datasets, local CSV / JSON / JSONL / Parquet, and NumPy (.npy, .npz)
+- **Advanced Indexers** — FAISS (Flat, IVF, HNSW), ScaNN, HNSWLib, and more
+- **Database Support** — Benchmark pgvector (PostgreSQL), Elasticsearch, and Weaviate
 - **Custom indexer scripts** — benchmark your own implementations by providing a script path
 - **Four metrics** — build time, query latency, index footprint, memory overhead
 - **Environment setup** — `embenx setup` checks all dependencies in one command
@@ -78,13 +81,11 @@ This verifies all indexers are installed and your Ollama model is ready. Pass `-
 uv run embenx benchmark --dataset squad --max-docs 100 --model ollama/nomic-embed-text
 ```
 
-### 3. Benchmark your own data
+### 3. Benchmark local data
 ```bash
-uv run embenx benchmark \
-  --dataset json \
-  --data-files ./my_data.jsonl \
-  --text-column content \
-  --max-docs 500
+# Direct path to Parquet, CSV, or NumPy
+uv run embenx benchmark --dataset ./my_data.parquet --text-column content
+uv run embenx benchmark --dataset ./embeddings.npy
 ```
 
 ### 4. Custom Indexers
@@ -118,7 +119,7 @@ uv run embenx benchmark --custom-indexer ./my_indexer.py --indexers mycustominde
 
 | Flag | Description | Default |
 | :--- | :--- | :--- |
-| `--dataset` / `-d` | HuggingFace dataset name or `csv` / `json` | *required* |
+| `--dataset` / `-d` | HuggingFace dataset name or local path (csv, json, parquet, npy, index) | *required* |
 | `--text-column` / `-c` | Column to embed and index | `text` |
 | `--split` / `-s` | HuggingFace dataset split | `train` |
 | `--max-docs` / `-m` | Number of documents to index | `1000` |
@@ -128,17 +129,6 @@ uv run embenx benchmark --custom-indexer ./my_indexer.py --indexers mycustominde
 | `--no-cleanup` | Keep index files on disk after the run | — |
 | `--custom-indexer` | Path to a Python script with a custom indexer class | — |
 
-### Other commands
-
-| Command | Description |
-| :--- | :--- |
-| `embenx setup` | Check installed indexers and embedding model availability |
-| `embenx setup --pull` | Same, and auto-pull a missing Ollama model |
-| `embenx list-indexers` | List supported backends |
-| `embenx cleanup` | Remove leftover index artifacts |
-| `embenx init-skill` | Generate a `SKILL.md` for AI agents |
-| `embenx help` | Show help menu |
-
 ## Output Metrics
 
 | Metric | What it measures |
@@ -147,23 +137,6 @@ uv run embenx benchmark --custom-indexer ./my_indexer.py --indexers mycustominde
 | **Query Time (ms/query)** | Mean search latency across 10 test queries |
 | **Index Size (KB)** | Disk or memory footprint of the final index |
 | **Memory Added (MB)** | Process RAM delta during the indexing phase |
-
-## Prerequisites
-
-- Python 3.9+
-- [uv](https://github.com/astral-sh/uv) (recommended) or pip
-- [Ollama](https://ollama.com/) for local, zero-cost embeddings (optional)
-- Cloud API key (`OPENAI_API_KEY`, etc.) for cloud embeddings (optional)
-
-## Contributing
-
-Contributions are welcome and appreciated! Here's how to get started:
-
-1. **Fork** the repository and create a branch: `git checkout -b feature/my-feature`
-2. **Install** dependencies: `uv sync`
-3. **Make your changes** — new indexers, metrics, bug fixes, or docs
-4. **Test** your changes: `uv run embenx benchmark --dataset squad --max-docs 50`
-5. **Open a Pull Request** with a clear description of what changed and why
 
 ## License
 
