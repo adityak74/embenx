@@ -8,6 +8,16 @@ Python Library (Collection API)
 
 The ``Collection`` class is the primary entry point for using Embenx as a library.
 
+Supported Indexer Types
+^^^^^^^^^^^^^^^^^^^^^^
+
+When initializing a ``Collection``, you can choose from the following ``indexer_type`` values:
+
+* **FAISS Family**: ``faiss`` (Flat), ``faiss-ivf``, ``faiss-hnsw``, ``faiss-sq8``, ``faiss-pq``
+* **Local ANN**: ``annoy``, ``hnswlib``, ``usearch``, ``usearch-f16``, ``usearch-i8``, ``chroma``, ``lance``, ``qdrant``, ``milvus``, ``scann``
+* **Databases**: ``pgvector``, ``duckdb``, ``weaviate``, ``elasticsearch``, ``vespa``
+* **Baselines**: ``simple`` (NumPy brute-force)
+
 .. code-block:: python
 
    from embenx import Collection
