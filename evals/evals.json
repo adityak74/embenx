@@ -1,0 +1,44 @@
+{
+  "skill_name": "embenx",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm building a RAG pipeline and need to choose a vector DB. Can you benchmark FAISS vs Qdrant on the SQuAD dataset using 200 docs? I'm running Ollama locally with nomic-embed-text pulled. I care most about query speed.",
+      "expected_output": "Runs the benchmark with --dataset squad --indexers faiss,qdrant --max-docs 200 --model ollama/nomic-embed-text, shows results table, and recommends the faster indexer based on the query latency numbers.",
+      "files": [],
+      "assertions": [
+        "Runs embenx benchmark with squad dataset",
+        "Limits to faiss and qdrant indexers",
+        "Uses max-docs around 200 (or less for quick test)",
+        "Uses ollama/nomic-embed-text or similar local model",
+        "Provides a recommendation based on query latency"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I have a local file at ./data/articles.jsonl where the text is in a column called 'body'. I want to compare all available vector indexers to find the one with the smallest memory footprint. Start with 100 docs.",
+      "expected_output": "Runs benchmark with --dataset json --data-files ./data/articles.jsonl --text-column body --max-docs 100, checks if the file exists first, and recommends the indexer with lowest memory overhead.",
+      "files": [],
+      "assertions": [
+        "Uses --dataset json flag for local file",
+        "Passes --data-files ./data/articles.jsonl",
+        "Uses --text-column body",
+        "Uses --max-docs 100",
+        "Mentions checking if the file exists or handles the missing file gracefully",
+        "Frames the recommendation around memory footprint"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Which vector database is best for a small local semantic search project? I have about 50k documents and I don't want to pay for cloud embeddings. I also want to keep the index files around after benchmarking so I can inspect them.",
+      "expected_output": "Suggests a benchmarking plan using a local Ollama model (no cloud cost), passes --no-cleanup to preserve index files, and recommends an indexer suitable for local use with good self-hosting characteristics.",
+      "files": [],
+      "assertions": [
+        "Recommends using a local/Ollama embedding model to avoid cloud costs",
+        "Uses or mentions the --no-cleanup flag to preserve index files",
+        "Recommends starting with a smaller max-docs for the test run before scaling to 50k",
+        "Gives a concrete recommendation for local self-hosted use (e.g., Chroma or LanceDB)"
+      ]
+    }
+  ]
+}
