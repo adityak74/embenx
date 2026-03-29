@@ -13,47 +13,12 @@ from indexers.chroma_indexer import ChromaIndexer
 from indexers.qdrant_indexer import QdrantIndexer
 from indexers.milvus_indexer import MilvusIndexer
 from indexers.lance_indexer import LanceIndexer
+from indexers.weaviate_indexer import WeaviateIndexer
+from indexers.duckdb_indexer import DuckDBIndexer
 
 def get_memory_usage():
     process = psutil.Process(os.getpid())
     return process.memory_info().rss / 1024 / 1024  # MB
-
-def run_benchmark(dataset_name: str, split: str, text_column: str, max_docs: int, indexer_names: List[str], model_name: str, console: Console, data_files: str = None, cleanup: bool = True):
-    # Load Data
-    console.print(f"\n[bold]Loading up to {max_docs} documents...[/bold]")
-    docs = load_documents(dataset_name, split, text_column, max_docs, data_files=data_files)
-    console.print(f"Loaded {len(docs)} documents.")
-
-    if not docs:
-        console.print("[red]No documents loaded. Exiting.[/red]")
-        return
-
-    # Embed Data
-    console.print(f"\n[bold]Generating embeddings using LiteLLM ({model_name})...[/bold]")
-    embedder = Embedder(model_name)
-    texts = [d["text"] for d in docs]
-    metadata = [d["metadata"] for d in docs]
-    
-    t0 = time.perf_counter()
-    embeddings = embedder.embed_texts(texts)
-    emb_time = time.perf_counter() - t0
-    
-    if not embeddings:
-        console.print("[red]Failed to generate embeddings. Is Ollama running?[/red]")
-        return
-
-    dimension = len(embeddings[0])
-    console.print(f"Generated {len(embeddings)} embeddings of dimension {dimension} in {emb_time:.2f}s.")
-    console.print(f"Approximate tokens processed: {embedder.total_tokens_approx}")
-
-    # Initialize Indexers
-    indexers_map = {
-        "faiss": FaissIndexer,
-        "chroma": ChromaIndexer,
-        "qdrant": QdrantIndexer,
-        "milvus": MilvusIndexer,
-        "lance": LanceIndexer
-    }
 
 def benchmark_single_indexer(name, indexer_cls, dimension, embeddings, metadata, console, cleanup=True):
     console.print(f"\n[bold cyan]--- Benchmarking {name.upper()} ---[/bold cyan]")
@@ -130,7 +95,9 @@ def run_benchmark(dataset_name: str, split: str, text_column: str, max_docs: int
         "chroma": ChromaIndexer,
         "qdrant": QdrantIndexer,
         "milvus": MilvusIndexer,
-        "lance": LanceIndexer
+        "lance": LanceIndexer,
+        "weaviate": WeaviateIndexer,
+        "duckdb": DuckDBIndexer
     }
 
     results = []
