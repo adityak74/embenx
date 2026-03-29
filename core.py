@@ -209,6 +209,70 @@ class Collection:
             display_results(results, console)
         return results
 
+    def evaluate(
+        self, indexer_type: str = "faiss-hnsw", top_k: int = 10, **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Evaluate an indexer's recall and latency against an exact search baseline.
+
+        Returns:
+            Dictionary with 'recall' and 'latency_ms' metrics.
+        """
+        if self._vectors is None:
+            raise RuntimeError("Collection is empty. Add data before evaluating.")
+
+        from indexers.simple_indexer import SimpleIndexer
+        import time
+
+        # 1. Exact Search Baseline
+        exact = SimpleIndexer(self.dimension)
+        exact.build_index(self._vectors.tolist(), self._metadata)
+
+        # 2. Candidate Indexer
+        indexer_map = get_indexer_map()
+        if indexer_type not in indexer_map:
+            raise ValueError(f"Indexer '{indexer_type}' not found.")
+
+        candidate_cls = indexer_map[indexer_type]
+        candidate = candidate_cls(self.dimension, **kwargs)
+        candidate.build_index(self._vectors.tolist(), self._metadata)
+
+        # 3. Sample queries (up to 100)
+        n_samples = min(100, len(self._vectors))
+        sample_indices = np.random.choice(len(self._vectors), n_samples, replace=False)
+        queries = self._vectors[sample_indices]
+
+        recalls = []
+        latencies = []
+
+        for q in queries:
+            q_list = q.tolist()
+
+            # Get exact ground truth IDs
+            exact_res = exact.search(q_list, top_k=top_k)
+            exact_ids = {meta.get("id") or meta.get("text") or str(meta) for meta, _ in exact_res}
+
+            # Get candidate results and measure latency
+            t0 = time.perf_counter()
+            cand_res = candidate.search(q_list, top_k=top_k)
+            latencies.append((time.perf_counter() - t0) * 1000)
+
+            cand_ids = {meta.get("id") or meta.get("text") or str(meta) for meta, _ in cand_res}
+
+            # Calculate intersection (Recall@K)
+            if exact_ids:
+                intersection = exact_ids.intersection(cand_ids)
+                recalls.append(len(intersection) / len(exact_ids))
+            else:
+                recalls.append(1.0)
+
+        return {
+            "indexer": indexer_type,
+            "recall": float(np.mean(recalls)),
+            "latency_ms": float(np.mean(latencies)),
+            "samples": n_samples,
+        }
+
     def _apply_filter(self, results: List[Tuple[Dict[str, Any], float]], where: Dict[str, Any]):
         filtered = []
         for meta, dist in results:

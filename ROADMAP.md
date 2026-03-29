@@ -32,7 +32,7 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 - [x] **Reranking Hooks**: Add a `rerank(callable)` interface compatible with Cross-Encoders and ColBERT.
 - [x] **Sparse Vector Support**: Add BM25 or SPLADE integration.
 - [x] **Hybrid Search**: Combine dense and sparse results with configurable weighting (Reciprocal Rank Fusion).
-- [ ] **Recall/Latency Benchmarking**: Tooling to help users tune HNSW/IVF parameters against an exact-search baseline.
+- [x] **Recall/Latency Benchmarking**: Tooling to help users tune HNSW/IVF parameters against an exact-search baseline.
 
 ---
 

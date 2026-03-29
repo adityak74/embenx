@@ -63,6 +63,7 @@ col.benchmark(indexers=["faiss", "usearch", "hnswlib"])
 
 - **Unified Collection API** — Table-like interface for vectors and metadata.
 - **Hybrid Search** — Combine dense vectors with sparse BM25 retrieval using RRF.
+- **Recall Evaluation** — Built-in tools to measure ANN accuracy against exact search.
 - **Library-Native Benchmarking** — Compare performance directly from Python code.
 - **Metadata Filtering** — Native 'where' clause support for filtered retrieval.
 - **Reranking Hooks** — Easily plug in Cross-Encoders or custom reranking logic.

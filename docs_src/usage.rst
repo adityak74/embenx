@@ -49,6 +49,11 @@ When initializing a ``Collection``, you can choose from the following ``indexer_
    # This compares backends directly on your collection's current state
    col.benchmark(indexers=["faiss", "usearch", "simple"])
 
+   # 6. Evaluate recall and latency
+   # Compares an ANN indexer against an exact search baseline
+   metrics = col.evaluate(indexer_type="faiss-hnsw", top_k=10)
+   print(f"Recall: {metrics['recall']}, Latency: {metrics['latency_ms']}ms")
+
 Hybrid Search (Dense + Sparse)
 ----------------------------
 

@@ -57,7 +57,6 @@ def test_collection_filtering():
     col.add(vectors, metadata)
     
     # Search for first vector but filter for color="blue"
-    # Even though 0 is the closest, it should be filtered out
     results = col.search(vectors[0], top_k=1, where={"color": "blue"})
     assert len(results) == 1
     assert results[0][0]["color"] == "blue"
@@ -91,6 +90,21 @@ def test_collection_benchmark_empty():
     col = Collection(dimension=4)
     with pytest.raises(RuntimeError, match="Collection is empty"):
         col.benchmark()
+
+def test_collection_evaluate():
+    col = Collection(dimension=4)
+    vectors = np.random.rand(20, 4).astype(np.float32)
+    col.add(vectors)
+    
+    res = col.evaluate(indexer_type="faiss", top_k=5)
+    assert "recall" in res
+    assert "latency_ms" in res
+    assert res["recall"] == 1.0
+
+def test_collection_evaluate_empty():
+    col = Collection(dimension=4)
+    with pytest.raises(RuntimeError, match="Collection is empty"):
+        col.evaluate()
 
 def test_collection_from_numpy(tmp_path):
     path = os.path.join(tmp_path, "test.npy")
