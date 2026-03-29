@@ -5,3 +5,4 @@ __pycache__/
 *.lance
 docs/*.html
 !docs/index.html
+docs/
