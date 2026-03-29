@@ -1,45 +1,36 @@
-from .annoy_indexer import AnnoyIndexer
+import importlib
 from .base import BaseIndexer
-from .chroma_indexer import ChromaIndexer
-from .duckdb_indexer import DuckDBIndexer
-from .faiss_indexer import FaissIndexer
-from .hnswlib_indexer import HNSWLibIndexer
-from .lance_indexer import LanceIndexer
-from .milvus_indexer import MilvusIndexer
-from .qdrant_indexer import QdrantIndexer
-from .simple_indexer import SimpleIndexer
-from .usearch_indexer import USearchIndexer
-from .weaviate_indexer import WeaviateIndexer
-
 
 def get_indexer_map():
-    return {
-        "faiss": FaissIndexer,
-        "chroma": ChromaIndexer,
-        "qdrant": QdrantIndexer,
-        "milvus": MilvusIndexer,
-        "lance": LanceIndexer,
-        "weaviate": WeaviateIndexer,
-        "duckdb": DuckDBIndexer,
-        "usearch": USearchIndexer,
-        "simple": SimpleIndexer,
-        "annoy": AnnoyIndexer,
-        "hnswlib": HNSWLibIndexer,
+    indexers = {
+        "faiss": ("indexers.faiss_indexer", "FaissIndexer"),
+        "chroma": ("indexers.chroma_indexer", "ChromaIndexer"),
+        "qdrant": ("indexers.qdrant_indexer", "QdrantIndexer"),
+        "milvus": ("indexers.milvus_indexer", "MilvusIndexer"),
+        "lance": ("indexers.lance_indexer", "LanceIndexer"),
+        "weaviate": ("indexers.weaviate_indexer", "WeaviateIndexer"),
+        "duckdb": ("indexers.duckdb_indexer", "DuckDBIndexer"),
+        "usearch": ("indexers.usearch_indexer", "USearchIndexer"),
+        "simple": ("indexers.simple_indexer", "SimpleIndexer"),
+        "annoy": ("indexers.annoy_indexer", "AnnoyIndexer"),
+        "hnswlib": ("indexers.hnswlib_indexer", "HNSWLibIndexer"),
+        "scann": ("indexers.scann_indexer", "ScaNNIndexer"),
+        "vespa": ("indexers.vespa_indexer", "VespaIndexer"),
+        "elasticsearch": ("indexers.elasticsearch_indexer", "ElasticsearchIndexer"),
     }
-
+    
+    indexer_map = {}
+    for name, (module_path, class_name) in indexers.items():
+        try:
+            module = importlib.import_module(module_path)
+            indexer_map[name] = getattr(module, class_name)
+        except (ImportError, ModuleNotFoundError):
+            # Skip if dependencies are missing or platform doesn't support it
+            continue
+            
+    return indexer_map
 
 __all__ = [
     "BaseIndexer",
-    "FaissIndexer",
-    "ChromaIndexer",
-    "QdrantIndexer",
-    "MilvusIndexer",
-    "LanceIndexer",
-    "WeaviateIndexer",
-    "DuckDBIndexer",
-    "USearchIndexer",
-    "SimpleIndexer",
-    "AnnoyIndexer",
-    "HNSWLibIndexer",
     "get_indexer_map",
 ]

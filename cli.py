@@ -181,6 +181,9 @@ def setup(
         "usearch": "usearch",
         "annoy": "annoy",
         "hnswlib": "hnswlib",
+        "scann": "scann",
+        "vespa": "vespa",
+        "elasticsearch": "elasticsearch",
     }
 
     console.print("\n[bold cyan]Embenx Environment Check[/bold cyan]\n")

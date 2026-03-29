@@ -46,6 +46,9 @@ Available Indexers:
 * **usearch**: USearch
 * **annoy**: Annoy (Approximate Nearest Neighbors Oh Yeah)
 * **hnswlib**: HNSWLib (Hierarchical Navigable Small World)
+* **scann**: ScaNN (Scalable Nearest Neighbors)
+* **vespa**: Vespa
+* **elasticsearch**: Elasticsearch
 * **simple**: NumPy-based brute-force baseline
 
 * :ref:`genindex`
