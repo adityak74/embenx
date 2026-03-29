@@ -2,6 +2,7 @@ from typer.testing import CliRunner
 from cli import app
 import os
 import shutil
+from unittest.mock import patch
 
 runner = CliRunner()
 
@@ -37,3 +38,22 @@ def test_benchmark_help():
     result = runner.invoke(app, ["benchmark", "--help"])
     assert result.exit_code == 0
     assert "Run Embenx benchmarks" in result.stdout
+
+@patch("benchmark.run_benchmark")
+def test_cli_benchmark_run(mock_run):
+    result = runner.invoke(app, ["benchmark", "--dataset", "dummy", "--max-docs", "5", "--indexers", "faiss"])
+    assert result.exit_code == 0
+    mock_run.assert_called_once()
+
+def test_setup_with_pull():
+    with patch("subprocess.run") as mock_sub:
+        mock_sub.return_value.stdout = "other-model"
+        result = runner.invoke(app, ["setup", "--model", "ollama/nomic-embed-text", "--pull"])
+        assert result.exit_code == 0
+        # Check if pull was attempted (it should be since nomic-embed-text is not in stdout)
+        assert any("pull" in str(args) for args in mock_sub.call_args_list)
+
+def test_list_indexers_command():
+    result = runner.invoke(app, ["list-indexers"])
+    assert result.exit_code == 0
+    assert "faiss" in result.stdout
