@@ -25,19 +25,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          python-version: "3.12"
 
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
       - name: Build Sphinx Documentation
-        run: uv run python -m sphinx -b html docs_src ./public
+        run: uv run --group dev sphinx-build -b html docs_src ./public
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -48,7 +46,6 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: './public'
-
 
       - name: Deploy to GitHub Pages
         id: deployment
