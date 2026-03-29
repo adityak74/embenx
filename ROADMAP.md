@@ -16,6 +16,7 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
     - `Collection.from_parquet(path, vector_col, text_col)`
     - FAISS `.index` loading.
 - [x] **Distance Backend Consistency**: Ensure L2, Cosine, and Dot Product work identically across core indexers.
+- [x] **Library-Native Benchmarking**: Compare performance directly from the Collection API.
 - [x] **Quantization Support**: FAISS SQ8/PQ and USearch F16/I8.
 
 ## Milestone 2: Metadata & Filtering (v0.2.0) ✅

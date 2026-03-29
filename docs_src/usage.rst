@@ -45,6 +45,10 @@ When initializing a ``Collection``, you can choose from the following ``indexer_
 
    results = col.search(vectors[0], reranker=my_reranker)
 
+   # 5. Benchmark multiple indexers on live data
+   # This compares backends directly on your collection's current state
+   col.benchmark(indexers=["faiss", "usearch", "simple"])
+
 Benchmark CLI
 -------------
 

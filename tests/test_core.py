@@ -87,6 +87,11 @@ def test_collection_benchmark():
     assert len(results) == 2
     assert any(r["Indexer"] == "FAISS" for r in results)
 
+def test_collection_benchmark_empty():
+    col = Collection(dimension=4)
+    with pytest.raises(RuntimeError, match="Collection is empty"):
+        col.benchmark()
+
 def test_collection_from_numpy(tmp_path):
     path = os.path.join(tmp_path, "test.npy")
     vectors = np.random.rand(10, 4).astype(np.float32)

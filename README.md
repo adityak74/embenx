@@ -54,11 +54,15 @@ results = col.search(
 # 4. Save/Load
 col.to_parquet("my_collection.parquet")
 new_col = Collection.from_parquet("my_collection.parquet")
+
+# 5. Benchmark multiple indexers on your data
+col.benchmark(indexers=["faiss", "usearch", "hnswlib"])
 ```
 
 ## Features
 
 - **Unified Collection API** — Table-like interface for vectors and metadata.
+- **Library-Native Benchmarking** — Compare performance directly from Python code.
 - **Metadata Filtering** — Native 'where' clause support for filtered retrieval.
 - **Reranking Hooks** — Easily plug in Cross-Encoders or custom reranking logic.
 - **Quantization Support** — SQ8, PQ, F16, and I8 indices for memory efficiency.
