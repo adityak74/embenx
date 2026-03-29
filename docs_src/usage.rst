@@ -1,12 +1,44 @@
 Usage Guide
 ===========
 
-Embenx provides a simple CLI for benchmarking.
+Embenx provides a high-level Python API and a powerful CLI for vector retrieval and benchmarking.
 
-Benchmark Command
------------------
+Python Library (Collection API)
+-----------------------------
 
-The primary command is ``benchmark``:
+The ``Collection`` class is the primary entry point for using Embenx as a library.
+
+.. code-block:: python
+
+   from embenx import Collection
+   import numpy as np
+
+   # 1. Initialize a collection
+   # indexer_type can be: faiss, faiss-hnsw, faiss-sq8, usearch-f16, etc.
+   col = Collection(dimension=768, indexer_type="faiss-hnsw")
+
+   # 2. Add data
+   vectors = np.random.rand(100, 768).astype('float32')
+   metadata = [{"id": i, "category": "news"} for i in range(100)]
+   col.add(vectors, metadata)
+
+   # 3. Search with filtering
+   results = col.search(
+       query=vectors[0], 
+       top_k=5, 
+       where={"category": "news"}
+   )
+
+   # 4. Search with custom reranking
+   def my_reranker(query, results):
+       return sorted(results, key=lambda x: x[0]['id'], reverse=True)
+
+   results = col.search(vectors[0], reranker=my_reranker)
+
+Benchmark CLI
+-------------
+
+The primary CLI command is ``benchmark``:
 
 .. code-block:: bash
 
@@ -32,21 +64,15 @@ Check your environment before running:
 Local Datasets
 --------------
 
-Embenx supports local CSV, JSON, and Parquet files. You can pass the path directly to the ``--dataset`` flag:
+Embenx supports local CSV, JSON, Parquet, and NumPy files. You can pass the path directly to the ``--dataset`` flag:
 
 .. code-block:: bash
 
    # Using a direct path to a Parquet file
    embenx benchmark --dataset ./my_data.parquet --text-column content
 
-   # Using a direct path to a CSV file
-   embenx benchmark --dataset ./my_data.csv
-
-Alternatively, you can specify the format and use ``--data-files``:
-
-.. code-block:: bash
-
-   embenx benchmark --dataset json --data-files ./my_data.jsonl --text-column text
+   # Using a direct path to a NumPy file
+   embenx benchmark --dataset ./embeddings.npy
 
 Custom Indexers
 ---------------
@@ -55,7 +81,7 @@ You can create a custom indexer by inheriting from ``BaseIndexer``:
 
 .. code-block:: python
 
-   from indexers import BaseIndexer
+   from embenx import BaseIndexer
 
    class MyIndexer(BaseIndexer):
        def build_index(self, embeddings, metadata):
