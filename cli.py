@@ -11,7 +11,7 @@ def benchmark(
         ...,
         "--dataset",
         "-d",
-        help="HuggingFace dataset name or data format (e.g., 'csv', 'json')",
+        help="HuggingFace dataset name or data format (e.g., 'csv', 'json', 'parquet')",
     ),
     split: str = typer.Option("train", "--split", "-s", help="Dataset split to use"),
     text_column: str = typer.Option(
