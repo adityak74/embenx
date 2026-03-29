@@ -5,8 +5,10 @@ on:
     branches:
       - main
     paths:
-      - 'docs/**'
+      - 'docs_src/**'
+      - '**.py'
       - '.github/workflows/docs.yml'
+      - 'pyproject.toml'
 
 permissions:
   contents: read
@@ -14,7 +16,7 @@ permissions:
   id-token: write
 
 jobs:
-  deploy:
+  build-and-deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -22,6 +24,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Build Sphinx Documentation
+        run: uv run sphinx-build -b html docs_src ./public
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -31,7 +47,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './docs'
+          path: './public'
+
 
       - name: Deploy to GitHub Pages
         id: deployment
