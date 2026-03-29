@@ -3,7 +3,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 from rich.console import Console
 
-from benchmark import benchmark_single_indexer, get_memory_usage, run_benchmark
+from benchmark import (
+    benchmark_single_indexer,
+    get_memory_usage,
+    load_custom_indexer,
+    run_benchmark,
+)
 
 
 @pytest.fixture
@@ -88,3 +93,16 @@ def test_run_benchmark_invalid_indexer(mock_embedder_cls, mock_load, console):
     # Run with a non-existent indexer
     run_benchmark("d", "s", "c", 1, ["invalid"], "m", console)
     # Should skip 'invalid' without failing
+
+def test_load_custom_indexer_success(console):
+    # Using the real example file for testing
+    name, cls = load_custom_indexer("examples/custom_indexer.py", console)
+    assert name == "MyMockIndexer"
+    assert cls is not None
+    assert cls.__name__ == "MyMockIndexer"
+
+def test_load_custom_indexer_fail(console):
+    name, cls = load_custom_indexer("non_existent.py", console)
+    assert name is None
+    assert cls is None
+

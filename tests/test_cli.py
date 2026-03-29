@@ -68,3 +68,12 @@ def test_list_indexers_command():
     result = runner.invoke(app, ["list-indexers"])
     assert result.exit_code == 0
     assert "faiss" in result.stdout
+
+@patch("benchmark.run_benchmark")
+def test_cli_benchmark_custom_indexer(mock_run):
+    result = runner.invoke(app, ["benchmark", "--dataset", "dummy", "--custom-indexer", "examples/custom_indexer.py", "--indexers", "mymockindexer"])
+    assert result.exit_code == 0
+    mock_run.assert_called_once()
+    # Verify custom_indexer_script was passed
+    args, kwargs = mock_run.call_args
+    assert kwargs["custom_indexer_script"] == "examples/custom_indexer.py"

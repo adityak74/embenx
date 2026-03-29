@@ -8,7 +8,10 @@ console = Console()
 @app.command()
 def benchmark(
     dataset: str = typer.Option(
-        ..., "--dataset", "-d", help="HuggingFace dataset name or data format (e.g., 'csv', 'json')"
+        ...,
+        "--dataset",
+        "-d",
+        help="HuggingFace dataset name or data format (e.g., 'csv', 'json')",
     ),
     split: str = typer.Option("train", "--split", "-s", help="Dataset split to use"),
     text_column: str = typer.Option(
@@ -36,16 +39,21 @@ def benchmark(
         "--cleanup/--no-cleanup",
         help="Automatically cleanup temporary index files after benchmarking",
     ),
+    custom_indexer: str = typer.Option(
+        None, "--custom-indexer", help="Path to a Python script containing a custom indexer class"
+    ),
 ):
     """
     Run Embenx benchmarks across different vector indexing libraries.
     """
-    console.print("[bold green]Starting Embenx benchmark...[/bold green]")
+    console.print(f"[bold green]Starting Embenx benchmark...[/bold green]")
     console.print(f"Dataset: [cyan]{dataset}[/cyan] ({split})")
     if data_files:
         console.print(f"Data Files: [cyan]{data_files}[/cyan]")
     if not cleanup:
-        console.print("Cleanup: [yellow]Disabled[/yellow]")
+        console.print(f"Cleanup: [yellow]Disabled[/yellow]")
+    if custom_indexer:
+        console.print(f"Custom Indexer: [cyan]{custom_indexer}[/cyan]")
     console.print(f"Max Docs: [cyan]{max_docs}[/cyan]")
     console.print(f"Model: [cyan]{model}[/cyan]")
     console.print(f"Indexers: [cyan]{indexers}[/cyan]")
@@ -69,6 +77,7 @@ def benchmark(
         console=console,
         data_files=data_files,
         cleanup=cleanup,
+        custom_indexer_script=custom_indexer,
     )
 
 
@@ -77,7 +86,6 @@ def init_skill():
     """
     Generate a SKILL.md file for AI agents (Claude, Gemini, etc.) to use Embenx.
     """
-
     skill_content = """# Embenx Skill 🚀
 
 This skill enables the agent to perform high-performance benchmarking of vector indexing libraries using the **Embenx** CLI.
@@ -110,9 +118,7 @@ This skill enables the agent to perform high-performance benchmarking of vector 
         with open("SKILL.md", "w") as f:
             f.write(skill_content)
         console.print("[bold green]✓ Created SKILL.md successfully.[/bold green]")
-        console.print(
-            "[cyan]AI agents can now activate this skill to use Embenx effectively.[/cyan]"
-        )
+        console.print("[cyan]AI agents can now activate this skill to use Embenx effectively.[/cyan]")
     except Exception as e:
         console.print(f"[bold red]✗ Failed to create SKILL.md: {e}[/bold red]")
 
@@ -156,9 +162,7 @@ def setup(
         "--model",
         help="LiteLLM model to verify (e.g., 'ollama/nomic-embed-text')",
     ),
-    pull: bool = typer.Option(
-        False, "--pull", help="Pull the Ollama model if not already available"
-    ),
+    pull: bool = typer.Option(False, "--pull", help="Pull the Ollama model if not already available"),
 ):
     """
     Check that the environment is ready for benchmarking.
@@ -200,7 +204,7 @@ def setup(
             elif pull:
                 console.print(f"  [cyan]→[/cyan] Pulling {model_name}...")
                 subprocess.run(["ollama", "pull", model_name], check=True)
-                console.print("  [green]✓[/green] Pulled successfully")
+                console.print(f"  [green]✓[/green] Pulled successfully")
             else:
                 console.print(
                     f"  [yellow]✗[/yellow] Model not found. [dim]ollama pull {model_name}[/dim]"

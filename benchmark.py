@@ -1,5 +1,7 @@
 import os
 import time
+import importlib.util
+import inspect
 from typing import List
 
 import psutil
@@ -7,6 +9,7 @@ from rich.console import Console
 from rich.table import Table
 
 from data import load_documents
+from indexers.base import BaseIndexer
 from indexers.chroma_indexer import ChromaIndexer
 from indexers.duckdb_indexer import DuckDBIndexer
 from indexers.faiss_indexer import FaissIndexer
@@ -20,6 +23,30 @@ from llm import Embedder
 def get_memory_usage():
     process = psutil.Process(os.getpid())
     return process.memory_info().rss / 1024 / 1024  # MB
+
+
+def load_custom_indexer(script_path: str, console: Console):
+    """
+    Dynamically load a class inheriting from BaseIndexer from a given script.
+    """
+    try:
+        spec = importlib.util.spec_from_file_location("custom_indexer", script_path)
+        if spec is None or spec.loader is None:
+            console.print(f"[red]Could not load spec for {script_path}[/red]")
+            return None, None
+            
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        
+        for name, obj in inspect.getmembers(module):
+            if inspect.isclass(obj) and issubclass(obj, BaseIndexer) and obj is not BaseIndexer:
+                return name, obj
+                
+        console.print(f"[red]No class inheriting from BaseIndexer found in {script_path}[/red]")
+        return None, None
+    except Exception as e:
+        console.print(f"[red]Error loading custom indexer from {script_path}: {e}[/red]")
+        return None, None
 
 
 def benchmark_single_indexer(
@@ -76,6 +103,7 @@ def run_benchmark(
     console: Console,
     data_files: str = None,
     cleanup: bool = True,
+    custom_indexer_script: str = None,
 ):
     # Load Data
     console.print(f"\n[bold]Loading up to {max_docs} documents...[/bold]")
@@ -117,14 +145,24 @@ def run_benchmark(
         "duckdb": DuckDBIndexer,
     }
 
+    if custom_indexer_script:
+        custom_name, custom_cls = load_custom_indexer(custom_indexer_script, console)
+        if custom_cls:
+            c_name_lower = custom_name.lower()
+            indexers_map[c_name_lower] = custom_cls
+            console.print(f"[green]✓[/green] Successfully loaded custom indexer: [bold]{custom_name}[/bold]")
+            if c_name_lower not in [x.lower() for x in indexer_names] and "all" not in [x.lower() for x in indexer_names]:
+                indexer_names.append(c_name_lower)
+
     results = []
     for name in indexer_names:
-        if name not in indexers_map:
+        name_lower = name.lower()
+        if name_lower not in indexers_map:
             console.print(f"[yellow]Warning: Indexer '{name}' not found. Skipping.[/yellow]")
             continue
 
         res = benchmark_single_indexer(
-            name, indexers_map[name], dimension, embeddings, metadata, console, cleanup
+            name, indexers_map[name_lower], dimension, embeddings, metadata, console, cleanup
         )
         if res:
             results.append(res)
