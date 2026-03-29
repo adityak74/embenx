@@ -25,16 +25,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - name: Sphinx build
+        uses: ammaraskar/sphinx-action@master
         with:
-          enable-cache: true
-          python-version: "3.12"
-
-      - name: Build Sphinx Documentation
-        run: |
-          uv sync --group dev --all-extras
-          .venv/bin/python -m sphinx -b html docs_src ./public
+          docs-folder: "docs_src"
+          # Install dependencies including the package itself for autodoc
+          pre-build-command: "pip install . litellm typer rich datasets psutil faiss-cpu chromadb qdrant-client pymilvus lancedb pyarrow weaviate-client duckdb furo"
+          build-command: "sphinx-build -b html . ../public"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
