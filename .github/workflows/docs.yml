@@ -37,7 +37,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Build Sphinx Documentation
-        run: uv run sphinx-build -b html docs_src ./public
+        run: uv run python -m sphinx -b html docs_src ./public
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
