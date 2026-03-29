@@ -1,8 +1,11 @@
-import lancedb
-import tempfile
 import os
-from typing import List, Dict, Any, Tuple
+import tempfile
+from typing import Any, Dict, List, Tuple
+
+import lancedb
+
 from .base import BaseIndexer
+
 
 class LanceIndexer(BaseIndexer):
     def __init__(self, dimension: int):
@@ -22,19 +25,21 @@ class LanceIndexer(BaseIndexer):
                 else:
                     row[k] = str(v)
             data.append(row)
-        
+
         if data:
             self.table = self.db.create_table("benchmark", data=data, mode="overwrite")
 
-    def search(self, query_embedding: List[float], top_k: int = 5) -> List[Tuple[Dict[str, Any], float]]:
+    def search(
+        self, query_embedding: List[float], top_k: int = 5
+    ) -> List[Tuple[Dict[str, Any], float]]:
         if self.table is None:
             return []
         results = self.table.search(query_embedding).limit(top_k).to_list()
         out = []
         for r in results:
-            dist = r.pop('_distance', 0.0)
-            r.pop('id', None)
-            r.pop('vector', None)
+            dist = r.pop("_distance", 0.0)
+            r.pop("id", None)
+            r.pop("vector", None)
             out.append((r, dist))
         return out
 

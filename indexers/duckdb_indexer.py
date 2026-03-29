@@ -1,10 +1,10 @@
-import duckdb
-import numpy as np
 import json
-import os
-import tempfile
-from typing import List, Dict, Any, Tuple
+from typing import Any, Dict, List, Tuple
+
+import duckdb
+
 from .base import BaseIndexer
+
 
 class DuckDBIndexer(BaseIndexer):
     def __init__(self, dimension: int):
@@ -12,14 +12,18 @@ class DuckDBIndexer(BaseIndexer):
         # Using in-memory for benchmark
         self.conn = duckdb.connect(":memory:")
         # Use fixed size FLOAT[dimension] for array_distance to work properly
-        self.conn.execute(f"CREATE TABLE benchmark (id INTEGER, vector FLOAT[{dimension}], metadata JSON)")
+        self.conn.execute(
+            f"CREATE TABLE benchmark (id INTEGER, vector FLOAT[{dimension}], metadata JSON)"
+        )
 
     def build_index(self, embeddings: List[List[float]], metadata: List[Dict[str, Any]]) -> None:
         for i, (emb, meta) in enumerate(zip(embeddings, metadata)):
             meta_json = json.dumps(meta)
             self.conn.execute("INSERT INTO benchmark VALUES (?, ?, ?)", (i, emb, meta_json))
 
-    def search(self, query_embedding: List[float], top_k: int = 5) -> List[Tuple[Dict[str, Any], float]]:
+    def search(
+        self, query_embedding: List[float], top_k: int = 5
+    ) -> List[Tuple[Dict[str, Any], float]]:
         # DuckDB 1.0+ has vector support. array_distance computes the distance.
         query = f"""
             SELECT metadata, array_distance(vector, {query_embedding}::FLOAT[{self.dimension}]) as dist 
