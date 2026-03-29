@@ -28,7 +28,7 @@
 
 ## What is Embenx?
 
-Embenx is a Python-native retrieval library that sits between raw vector indices and full-blown vector databases. It provides a high-level `Collection` API for managing embeddings and metadata, supporting advanced features like **filtering**, **reranking**, and **quantization** with multiple backends (FAISS, LanceDB, Qdrant, etc.).
+Embenx is a Python-native retrieval library that sits between raw vector indices and full-blown vector databases. It provides a high-level `Collection` API for managing embeddings and metadata, supporting advanced features like **filtering**, **reranking**, and **quantization** across 15+ backends.
 
 ## Library Usage
 
@@ -61,24 +61,26 @@ new_col = Collection.from_parquet("my_collection.parquet")
 - **Unified Collection API** — Table-like interface for vectors and metadata.
 - **Metadata Filtering** — Native 'where' clause support for filtered retrieval.
 - **Reranking Hooks** — Easily plug in Cross-Encoders or custom reranking logic.
-- **Quantization Support** — Benchmark and use SQ8, PQ, F16, and I8 indices.
+- **Quantization Support** — SQ8, PQ, F16, and I8 indices for memory efficiency.
 - **Universal model support** — Integrated LiteLLM for any embedding provider.
 - **Portable Formats** — Native support for Parquet, NumPy (.npy/.npz), and FAISS (.index).
-- **Multi-Backend** — FAISS, Chroma, Qdrant, Milvus, LanceDB, Weaviate, DuckDB, USearch, and more.
+- **Multi-Backend** — 15+ backends including FAISS (IVF, HNSW), ScaNN, pgvector, USearch, and more.
+
+## Supported Indexers
+
+| Indexer | Family | Best For |
+| :--- | :--- | :--- |
+| `faiss` | HNSW, IVF, Flat | Production-grade local search |
+| `scann` | Tree-AH | State-of-the-art speed/recall (Linux) |
+| `usearch` | HNSW | High-performance C++, low latency |
+| `pgvector` | Postgres | Embeddings next to relational data |
+| `lancedb` | Columnar | Large disk-based datasets |
+| `simple` | NumPy | Exact search baseline |
 
 ## Installation
 
 ```bash
 pip install embenx
-```
-
-## CLI Benchmarking
-
-Embenx still ships with its powerful benchmarking CLI:
-
-```bash
-# Benchmark multiple indexers on a HF dataset
-embenx benchmark --dataset squad --max-docs 100 --indexers faiss,qdrant,lance
 ```
 
 ## Roadmap

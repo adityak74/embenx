@@ -1,7 +1,7 @@
 Embenx Documentation 🚀
 ========================
 
-Minimal, ultra-fast CLI for benchmarking vector indexing libraries.
+Python-native embedding retrieval layer.
 
 .. toctree::
    :maxdepth: 2
@@ -14,24 +14,23 @@ Minimal, ultra-fast CLI for benchmarking vector indexing libraries.
 Features
 --------
 
-- **Universal model support** — Ollama, OpenAI, Anthropic, and more via LiteLLM.
-- **Any dataset** — Support for HuggingFace datasets, local files (CSV, JSON, JSONL, Parquet), and NumPy (.npy, .npz).
-- **Advanced Indexers** — FAISS (Flat, IVF, HNSW, SQ8, PQ), ScaNN, HNSWLib, and more.
-- **Quantization Support** — Benchmark Float16, Int8, and Product Quantization.
-- **Database Support** — Benchmark pgvector (PostgreSQL), Elasticsearch, and Weaviate.
-- **Custom Indexers** — Benchmark your own implementations with simple Python scripts.
-- **Comprehensive Metrics** — Track Build Time, Query Latency, Index Size, and Memory Usage.
+- **Unified Collection API** — Table-like interface for vectors and metadata.
+- **Metadata Filtering** — Native 'where' clause support for filtered retrieval.
+- **Reranking Hooks** — Easily plug in Cross-Encoders or custom reranking logic.
+- **Quantization Support** — SQ8, PQ, F16, and I8 indices for memory efficiency.
+- **Universal model support** — Integrated LiteLLM for any embedding provider.
+- **Portable Formats** — Native support for Parquet, NumPy (.npy/.npz), and FAISS (.index).
+- **Multi-Backend** — 15+ backends including FAISS (IVF, HNSW), ScaNN, pgvector, USearch, and more.
 
 Quick Start
 -----------
 
-.. code-block:: bash
+.. code-block:: python
 
-   # Install Embenx
-   pip install embenx
-
-   # Run a benchmark
-   embenx benchmark --dataset squad --max-docs 100
+   from embenx import Collection
+   col = Collection(dimension=768, indexer_type="faiss-hnsw")
+   col.add(vectors, metadata)
+   results = col.search(query, top_k=5)
 
 Indices and tables
 ==================
@@ -39,26 +38,20 @@ Indices and tables
 Available Indexers:
 -------------------
 
-* **faiss**: FAISS (Flat)
-* **faiss-ivf**: FAISS (Inverted File Index)
-* **faiss-hnsw**: FAISS (Hierarchical Navigable Small World)
-* **faiss-sq8**: FAISS (Scalar Quantizer 8-bit)
-* **faiss-pq**: FAISS (Product Quantizer)
+* **faiss**: FAISS (Flat, IVF, HNSW, SQ8, PQ)
+* **scann**: ScaNN (Scalable Nearest Neighbors)
+* **usearch**: USearch (F32, F16, I8)
+* **pgvector**: PostgreSQL (pgvector)
+* **lance**: LanceDB
 * **chroma**: ChromaDB
 * **qdrant**: Qdrant
 * **milvus**: Milvus
-* **lance**: LanceDB
+* **annoy**: Annoy
+* **hnswlib**: HNSWLib
 * **weaviate**: Weaviate
 * **duckdb**: DuckDB
-* **usearch**: USearch (Float32)
-* **usearch-f16**: USearch (Float16)
-* **usearch-i8**: USearch (Int8)
-* **annoy**: Annoy (Approximate Nearest Neighbors Oh Yeah)
-* **hnswlib**: HNSWLib (Hierarchical Navigable Small World)
-* **scann**: ScaNN (Scalable Nearest Neighbors)
-* **vespa**: Vespa
 * **elasticsearch**: Elasticsearch
-* **pgvector**: PostgreSQL (pgvector)
+* **vespa**: Vespa
 * **simple**: NumPy-based brute-force baseline
 
 * :ref:`genindex`
