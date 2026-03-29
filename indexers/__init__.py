@@ -1,7 +1,9 @@
+from .annoy_indexer import AnnoyIndexer
 from .base import BaseIndexer
 from .chroma_indexer import ChromaIndexer
 from .duckdb_indexer import DuckDBIndexer
 from .faiss_indexer import FaissIndexer
+from .hnswlib_indexer import HNSWLibIndexer
 from .lance_indexer import LanceIndexer
 from .milvus_indexer import MilvusIndexer
 from .qdrant_indexer import QdrantIndexer
@@ -21,6 +23,8 @@ def get_indexer_map():
         "duckdb": DuckDBIndexer,
         "usearch": USearchIndexer,
         "simple": SimpleIndexer,
+        "annoy": AnnoyIndexer,
+        "hnswlib": HNSWLibIndexer,
     }
 
 
@@ -35,5 +39,7 @@ __all__ = [
     "DuckDBIndexer",
     "USearchIndexer",
     "SimpleIndexer",
+    "AnnoyIndexer",
+    "HNSWLibIndexer",
     "get_indexer_map",
 ]

@@ -179,6 +179,8 @@ def setup(
         "weaviate": "weaviate",
         "duckdb": "duckdb",
         "usearch": "usearch",
+        "annoy": "annoy",
+        "hnswlib": "hnswlib",
     }
 
     console.print("\n[bold cyan]Embenx Environment Check[/bold cyan]\n")

@@ -44,6 +44,8 @@ Available Indexers:
 * **weaviate**: Weaviate
 * **duckdb**: DuckDB
 * **usearch**: USearch
+* **annoy**: Annoy (Approximate Nearest Neighbors Oh Yeah)
+* **hnswlib**: HNSWLib (Hierarchical Navigable Small World)
 * **simple**: NumPy-based brute-force baseline
 
 * :ref:`genindex`
