@@ -62,11 +62,14 @@ class ScaNNIndexer(BaseIndexer):
 
     def get_size(self) -> int:
         total_size = 0
-        if os.path.exists(self.temp_dir.name):
-            for dirpath, _, filenames in os.walk(self.temp_dir.name):
-                for f in filenames:
-                    fp = os.path.join(dirpath, f)
-                    total_size += os.path.getsize(fp)
+        try:
+            if os.path.exists(self.temp_dir.name):
+                for dirpath, _, filenames in os.walk(self.temp_dir.name):
+                    for f in filenames:
+                        fp = os.path.join(dirpath, f)
+                        total_size += os.path.getsize(fp)
+        except Exception:
+            pass
         return total_size
 
     def cleanup(self) -> None:

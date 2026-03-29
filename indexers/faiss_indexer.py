@@ -102,12 +102,13 @@ class FaissIndexer(BaseIndexer):
         if self.index is None:
             return 0
         # For quantized indexes, ntotal * code_size gives better estimation
-        if hasattr(self.index, "codes"):
-            try:
-                return self.index.codes.nbytes + sys.getsizeof(self.metadata)
-            except Exception:
-                pass
-        
+        try:
+            codes = getattr(self.index, "codes", None)
+            if codes is not None:
+                return codes.nbytes + sys.getsizeof(self.metadata)
+        except Exception:
+            pass
+
         # Fallback to general estimation
         vectors_size = self.index.ntotal * self.dimension * 4
         return vectors_size + sys.getsizeof(self.metadata)
