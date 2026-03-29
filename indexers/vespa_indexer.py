@@ -1,8 +1,12 @@
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
-from vespa.application import Vespa
-from vespa.package import ApplicationPackage, Field, Schema, Document
+
+try:
+    from vespa.application import Vespa
+    from vespa.package import ApplicationPackage, Field, Schema, Document
+except ImportError:
+    Vespa = None
 
 from .base import BaseIndexer
 
@@ -18,6 +22,9 @@ class VespaIndexer(BaseIndexer):
     """
     def __init__(self, dimension: int):
         super().__init__("Vespa", dimension)
+        if Vespa is None:
+            # We don't raise error here yet as we use a simulation in search
+            pass
         self.metadata = []
         self.vectors = []
 

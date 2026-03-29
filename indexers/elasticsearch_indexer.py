@@ -2,7 +2,11 @@ import os
 import time
 from typing import Any, Dict, List, Tuple
 
-from elasticsearch import Elasticsearch, helpers
+try:
+    from elasticsearch import Elasticsearch, helpers
+except ImportError:
+    Elasticsearch = None
+    helpers = None
 
 from .base import BaseIndexer
 
@@ -15,6 +19,8 @@ class ElasticsearchIndexer(BaseIndexer):
     """
     def __init__(self, dimension: int):
         super().__init__("Elasticsearch", dimension)
+        if Elasticsearch is None:
+            raise ImportError("elasticsearch is not installed. Please install it with 'pip install elasticsearch'.")
         self.es_url = os.getenv("ELASTICSEARCH_URL", "http://localhost:9200")
         self.client = Elasticsearch(self.es_url)
         self.index_name = "benchmark_index"

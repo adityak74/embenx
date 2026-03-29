@@ -32,11 +32,14 @@ def load_documents(
                 data = np.load(dataset_name, allow_pickle=True)
                 # For .npz, look for specific keys
                 vectors = data.get("vectors")
-                texts = data.get("text") or data.get("texts")
+                texts = data.get("text")
+                if texts is None:
+                    texts = data.get("texts")
                 metadata = data.get("metadata")
 
                 docs = []
                 limit = min(max_docs, len(texts) if texts is not None else len(vectors))
+
                 for i in range(limit):
                     doc = {"id": str(i)}
                     doc["text"] = str(texts[i]) if texts is not None else ""

@@ -3,7 +3,11 @@ import tempfile
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
-import scann
+
+try:
+    import scann
+except ImportError:
+    scann = None
 
 from .base import BaseIndexer
 
@@ -11,6 +15,8 @@ from .base import BaseIndexer
 class ScaNNIndexer(BaseIndexer):
     def __init__(self, dimension: int):
         super().__init__("ScaNN", dimension)
+        if scann is None:
+            raise ImportError("scann is not installed. Please install it with 'pip install scann'.")
         self.searcher = None
         self.metadata = []
         self.temp_dir = tempfile.TemporaryDirectory()

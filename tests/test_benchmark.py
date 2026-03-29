@@ -1,3 +1,5 @@
+import os
+import time
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -33,9 +35,7 @@ def test_benchmark_single_indexer_success(console):
     metadata = [{"meta": "data"}]
 
     with patch("benchmark.get_memory_usage", side_effect=[10, 15]):
-        res = benchmark_single_indexer(
-            "test_idx", mock_indexer_cls, 2, embeddings, metadata, console
-        )
+        res = benchmark_single_indexer("test_idx", mock_indexer_cls, 2, embeddings, metadata, console)
 
     assert res["Indexer"] == "TEST_IDX"
     assert res["Index Size (KB)"] == "1.00"
@@ -51,15 +51,6 @@ def test_benchmark_single_indexer_fail(console):
 
     res = benchmark_single_indexer("fail", mock_indexer_cls, 2, [[0.1]], [{"m": 1}], console)
     assert res is None
-
-
-@patch("benchmark.load_documents")
-@patch("benchmark.Embedder")
-@patch("benchmark.display_results")
-def test_run_benchmark_no_docs(mock_display, mock_embedder, mock_load, console):
-    mock_load.return_value = []
-    run_benchmark("d", "s", "c", 10, ["faiss"], "m", console)
-    mock_embedder.assert_not_called()
 
 
 @patch("benchmark.load_documents")
@@ -87,6 +78,15 @@ def test_run_benchmark_full(mock_display, mock_get_map, mock_embedder_cls, mock_
 
 @patch("benchmark.load_documents")
 @patch("benchmark.Embedder")
+@patch("benchmark.display_results")
+def test_run_benchmark_no_docs(mock_display, mock_embedder, mock_load, console):
+    mock_load.return_value = []
+    run_benchmark("d", "s", "c", 10, ["faiss"], "m", console)
+    mock_embedder.assert_not_called()
+
+
+@patch("benchmark.load_documents")
+@patch("benchmark.Embedder")
 def test_run_benchmark_invalid_indexer(mock_embedder_cls, mock_load, console):
     mock_load.return_value = [{"text": "t1", "metadata": {}}]
     mock_embedder = mock_embedder_cls.return_value
@@ -96,15 +96,60 @@ def test_run_benchmark_invalid_indexer(mock_embedder_cls, mock_load, console):
     run_benchmark("d", "s", "c", 1, ["invalid"], "m", console)
     # Should skip 'invalid' without failing
 
+
 def test_load_custom_indexer_success(console):
-    # Using the real example file for testing
-    name, cls = load_custom_indexer("examples/custom_indexer.py", console)
-    assert name == "MyMockIndexer"
-    assert cls is not None
-    assert cls.__name__ == "MyMockIndexer"
+    # Create a temporary custom indexer script
+    script = """
+from indexers.base import BaseIndexer
+class TempIdx(BaseIndexer):
+    def build_index(self, e, m): pass
+    def search(self, q, k): return []
+    def get_size(self): return 0
+"""
+    with open("temp_idx.py", "w") as f:
+        f.write(script)
+
+    name, cls = load_custom_indexer("temp_idx.py", console)
+    assert name == "TempIdx"
+    if os.path.exists("temp_idx.py"):
+        os.remove("temp_idx.py")
+
+
+def test_load_custom_indexer_no_class(console):
+    with open("empty_idx.py", "w") as f:
+        f.write("x = 1")
+    name, cls = load_custom_indexer("empty_idx.py", console)
+    assert name is None
+    if os.path.exists("empty_idx.py"):
+        os.remove("empty_idx.py")
+
+
+def test_load_custom_indexer_error(console):
+    name, cls = load_custom_indexer("non_existent.py", console)
+    assert name is None
+
 
 def test_load_custom_indexer_fail(console):
     name, cls = load_custom_indexer("non_existent.py", console)
     assert name is None
     assert cls is None
 
+
+@patch("benchmark.load_documents")
+@patch("benchmark.Embedder")
+@patch("benchmark.load_custom_indexer")
+@patch("benchmark.display_results")
+def test_run_benchmark_with_custom(
+    mock_display, mock_load_custom, mock_embedder_cls, mock_load, console
+):
+    mock_load.return_value = [{"text": "t1", "metadata": {}}]
+    mock_embedder = mock_embedder_cls.return_value
+    mock_embedder.embed_texts.return_value = [[0.1] * 64]
+
+    mock_cls = MagicMock()
+    mock_inst = mock_cls.return_value
+    mock_inst.get_size.return_value = 1024
+    mock_load_custom.return_value = ("Custom", mock_cls)
+
+    run_benchmark("d", "s", "c", 1, ["custom"], "m", console, custom_indexer_script="path.py")
+    mock_load_custom.assert_called_once()

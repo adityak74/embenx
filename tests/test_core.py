@@ -76,3 +76,43 @@ def test_collection_reranking():
     results = col.search(vectors[0], top_k=2, reranker=dummy_reranker)
     assert results[0][0]["id"] == 3
     assert results[1][0]["id"] == 2
+
+def test_collection_from_numpy(tmp_path):
+    path = os.path.join(tmp_path, "test.npy")
+    vectors = np.random.rand(10, 4).astype(np.float32)
+    np.save(path, vectors)
+    
+    col = Collection.from_numpy(path, dimension=4)
+    assert len(col._metadata) == 10
+
+def test_collection_from_npz(tmp_path):
+    path = os.path.join(tmp_path, "test.npz")
+    vectors = np.random.rand(10, 4).astype(np.float32)
+    metadata = np.array([{"id": i} for i in range(10)])
+    np.savez(path, vectors=vectors, metadata=metadata)
+    
+    col = Collection.from_numpy(path)
+    assert len(col._metadata) == 10
+    assert col._metadata[0]["id"] == 0
+
+def test_collection_batch_search():
+    col = Collection(dimension=4)
+    vectors = np.eye(4, dtype=np.float32)
+    col.add(vectors)
+    
+    queries = vectors[:2]
+    results = col.search(queries, top_k=1)
+    assert len(results) == 2
+    assert len(results[0]) == 1
+
+def test_collection_errors():
+    col = Collection(dimension=4)
+    with pytest.raises(ValueError, match="Vector dimension mismatch"):
+        col.add(np.random.rand(1, 5))
+    
+    empty_col = Collection()
+    with pytest.raises(RuntimeError, match="Collection is empty"):
+        empty_col.search([1, 2, 3])
+        
+    with pytest.raises(ValueError, match="Indexer type 'invalid' not found"):
+        Collection(dimension=4, indexer_type="invalid")
