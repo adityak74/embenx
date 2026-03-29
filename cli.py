@@ -178,6 +178,7 @@ def setup(
         "lance": "lancedb",
         "weaviate": "weaviate",
         "duckdb": "duckdb",
+        "usearch": "usearch",
     }
 
     console.print("\n[bold cyan]Embenx Environment Check[/bold cyan]\n")

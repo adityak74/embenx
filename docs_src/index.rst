@@ -33,6 +33,19 @@ Quick Start
 Indices and tables
 ==================
 
+Available Indexers:
+-------------------
+
+* **faiss**: FAISS (Facebook AI Similarity Search)
+* **chroma**: ChromaDB
+* **qdrant**: Qdrant
+* **milvus**: Milvus
+* **lance**: LanceDB
+* **weaviate**: Weaviate
+* **duckdb**: DuckDB
+* **usearch**: USearch
+* **simple**: NumPy-based brute-force baseline
+
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`

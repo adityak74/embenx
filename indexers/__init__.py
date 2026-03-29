@@ -5,7 +5,10 @@ from .faiss_indexer import FaissIndexer
 from .lance_indexer import LanceIndexer
 from .milvus_indexer import MilvusIndexer
 from .qdrant_indexer import QdrantIndexer
+from .simple_indexer import SimpleIndexer
+from .usearch_indexer import USearchIndexer
 from .weaviate_indexer import WeaviateIndexer
+
 
 def get_indexer_map():
     return {
@@ -16,7 +19,10 @@ def get_indexer_map():
         "lance": LanceIndexer,
         "weaviate": WeaviateIndexer,
         "duckdb": DuckDBIndexer,
+        "usearch": USearchIndexer,
+        "simple": SimpleIndexer,
     }
+
 
 __all__ = [
     "BaseIndexer",
@@ -27,5 +33,7 @@ __all__ = [
     "LanceIndexer",
     "WeaviateIndexer",
     "DuckDBIndexer",
+    "USearchIndexer",
+    "SimpleIndexer",
     "get_indexer_map",
 ]
