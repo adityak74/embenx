@@ -18,18 +18,23 @@ class Collection:
         name: str = "default",
         dimension: Optional[int] = None,
         indexer_type: str = "faiss",
+        sparse_indexer_type: Optional[str] = None,
         **indexer_kwargs,
     ):
         self.name = name
         self.dimension = dimension
         self.indexer_type = indexer_type.lower()
+        self.sparse_indexer_type = sparse_indexer_type.lower() if sparse_indexer_type else None
         self.indexer_kwargs = indexer_kwargs
         self.indexer: Optional[BaseIndexer] = None
+        self.sparse_indexer: Optional[BaseIndexer] = None
         self._vectors = None
         self._metadata = []
 
         if dimension:
             self._init_indexer(dimension)
+        if self.sparse_indexer_type:
+            self._init_sparse_indexer()
 
     def _init_indexer(self, dimension: int):
         indexer_map = get_indexer_map()
@@ -39,6 +44,15 @@ class Collection:
         indexer_cls = indexer_map[self.indexer_type]
         self.indexer = indexer_cls(dimension=dimension, **self.indexer_kwargs)
         self.dimension = dimension
+
+    def _init_sparse_indexer(self):
+        indexer_map = get_indexer_map()
+        if self.sparse_indexer_type not in indexer_map:
+            raise ValueError(f"Sparse indexer type '{self.sparse_indexer_type}' not found.")
+
+        indexer_cls = indexer_map[self.sparse_indexer_type]
+        # Dimension 0 for sparse indexers like BM25
+        self.sparse_indexer = indexer_cls(dimension=0)
 
     def add(
         self,
@@ -56,8 +70,12 @@ class Collection:
 
         meta = metadata or [{} for _ in range(len(vectors))]
 
-        # Build/Update index
+        # Build/Update dense index
         self.indexer.build_index(vectors.tolist(), meta)
+
+        # Build/Update sparse index if present
+        if self.sparse_indexer:
+            self.sparse_indexer.build_index(vectors.tolist(), meta)
 
         # Keep local copy for I/O and non-native operations
         if self._vectors is None:
@@ -105,6 +123,51 @@ class Collection:
         else:
             return [_process_single(q) for q in query_vec]
 
+    def hybrid_search(
+        self,
+        query_vector: Union[np.ndarray, List[float]],
+        query_text: str,
+        top_k: int = 5,
+        dense_weight: float = 0.5,
+        sparse_weight: float = 0.5,
+        where: Optional[Dict[str, Any]] = None,
+    ) -> List[Tuple[Dict[str, Any], float]]:
+        """
+        Perform hybrid search combining dense and sparse results using Reciprocal Rank Fusion (RRF).
+        """
+        if not self.sparse_indexer:
+            raise RuntimeError(
+                "Sparse indexer not initialized. Initialize Collection with sparse_indexer_type."
+            )
+
+        # 1. Get Dense results
+        dense_results = self.search(query_vector, top_k=max(top_k * 2, 50), where=where)
+
+        # 2. Get Sparse results
+        sparse_results = self.sparse_indexer.search(query_text, top_k=max(top_k * 2, 50))
+        if where:
+            sparse_results = self._apply_filter(sparse_results, where)
+
+        # 3. Reciprocal Rank Fusion (RRF)
+        scores = {}
+
+        def _update_scores(results, weight):
+            for rank, (meta, _) in enumerate(results):
+                # Use 'text' or 'id' as a unique key for fusion
+                doc_key = meta.get("id") or meta.get("text") or str(meta)
+                if doc_key not in scores:
+                    scores[doc_key] = {"meta": meta, "score": 0.0}
+                # RRF formula component: weight * (1 / (rank + k))
+                scores[doc_key]["score"] += weight * (1.0 / (rank + 60))
+
+        _update_scores(dense_results, dense_weight)
+        _update_scores(sparse_results, sparse_weight)
+
+        # Sort by fused score
+        sorted_results = sorted(scores.values(), key=lambda x: x["score"], reverse=True)
+
+        return [(item["meta"], item["score"]) for item in sorted_results[:top_k]]
+
     def benchmark(self, indexers: Optional[List[str]] = None, top_k: int = 5):
         """
         Benchmark multiple indexers on the current collection data.
@@ -131,8 +194,6 @@ class Collection:
 
         results = []
         for name in selected:
-            # We use a subset of current data as queries for the benchmark
-            query_embeddings = self._vectors[: min(10, len(self._vectors))].tolist()
             res = benchmark_single_indexer(
                 name,
                 indexer_map[name],
@@ -194,4 +255,4 @@ class Collection:
 
     def __repr__(self) -> str:
         count = len(self._metadata) if self._metadata else 0
-        return f"Collection(name='{self.name}', size={count}, indexer='{self.indexer_type}')"
+        return f"Collection(name='{self.name}', size={count}, indexer='{self.indexer_type}', sparse='{self.sparse_indexer_type}')"

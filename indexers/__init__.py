@@ -25,6 +25,7 @@ def get_indexer_map():
         "vespa": ("indexers.vespa_indexer", "VespaIndexer", {}),
         "elasticsearch": ("indexers.elasticsearch_indexer", "ElasticsearchIndexer", {}),
         "pgvector": ("indexers.pgvector_indexer", "PGVectorIndexer", {}),
+        "bm25": ("indexers.bm25_indexer", "BM25Indexer", {}),
     }
     
     indexer_map = {}

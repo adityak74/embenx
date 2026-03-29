@@ -49,6 +49,32 @@ When initializing a ``Collection``, you can choose from the following ``indexer_
    # This compares backends directly on your collection's current state
    col.benchmark(indexers=["faiss", "usearch", "simple"])
 
+Hybrid Search (Dense + Sparse)
+----------------------------
+
+Embenx supports combining dense vector search with sparse BM25 retrieval.
+
+.. code-block:: python
+
+   # Initialize with both indexers
+   col = Collection(
+       dimension=768, 
+       indexer_type="faiss-hnsw", 
+       sparse_indexer_type="bm25"
+   )
+
+   # Add data (ensure metadata has a 'text' field for BM25)
+   col.add(vectors, metadata=[{"text": "content here", "id": 1}])
+
+   # Search using Reciprocal Rank Fusion (RRF)
+   results = col.hybrid_search(
+       query_vector=my_vector,
+       query_text="search keywords",
+       top_k=5,
+       dense_weight=0.7,
+       sparse_weight=0.3
+   )
+
 Benchmark CLI
 -------------
 

@@ -26,12 +26,12 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 - [x] **Filtering DSL**: Implement a `where` clause for metadata filtering.
 - [x] **Parquet-Native Schema**: Ensure metadata travels with vectors in Parquet exports.
 
-## Milestone 3: Hybrid Search & Reranking (v0.3.0) 🚧
+## Milestone 3: Hybrid Search & Reranking (v0.3.0) ✅
 **Goal**: Achieve state-of-the-art retrieval quality.
 
 - [x] **Reranking Hooks**: Add a `rerank(callable)` interface compatible with Cross-Encoders and ColBERT.
-- [ ] **Sparse Vector Support**: Add BM25 or SPLADE integration.
-- [ ] **Hybrid Search**: Combine dense and sparse results with configurable weighting (Reciprocal Rank Fusion).
+- [x] **Sparse Vector Support**: Add BM25 or SPLADE integration.
+- [x] **Hybrid Search**: Combine dense and sparse results with configurable weighting (Reciprocal Rank Fusion).
 - [ ] **Recall/Latency Benchmarking**: Tooling to help users tune HNSW/IVF parameters against an exact-search baseline.
 
 ---

@@ -53,7 +53,7 @@ def test_faiss_pq_low_data():
 def test_collection_repr():
     from core import Collection
     col = Collection(name="test", dimension=10)
-    assert "Collection(name='test', size=0, indexer='faiss')" == repr(col)
+    assert "Collection(name='test', size=0, indexer='faiss', sparse='None')" == repr(col)
 
 def test_collection_to_parquet_empty():
     from core import Collection
