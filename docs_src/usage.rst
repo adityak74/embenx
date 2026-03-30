@@ -89,6 +89,24 @@ Embenx provides a specialized ``CacheCollection`` for storing and retrieving hig
    results = col.search(query_vector)
    cached_kv = col.get_cache(results[0][0])
 
+SSM State Hydration
+------------------
+
+For architectures like Mamba-2 or Jamba, Embenx supports storing the initial hidden states ($h_0$) in a specialized ``StateCollection``.
+
+.. code-block:: python
+
+   from embenx.core import StateCollection
+   
+   col = StateCollection(name="mamba_ltm", dimension=128)
+   
+   # Add embeddings and their associated hidden states
+   col.add_states(vectors, states=h_tensors)
+   
+   # Retrieve and prime
+   results = col.search(query_vector)
+   h0 = col.get_state(results[0][0])
+
 Visual Explorer
 --------------
 

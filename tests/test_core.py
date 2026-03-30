@@ -196,3 +196,27 @@ def test_cache_collection(tmp_path):
     # Cleanup
     if os.path.exists("cache_test_cache"):
         shutil.rmtree("cache_test_cache")
+
+def test_state_collection(tmp_path):
+    from core import StateCollection
+    import shutil
+    
+    col = StateCollection(name="test_state", dimension=4)
+    vectors = np.random.rand(2, 4).astype(np.float32)
+    # Hidden states 'h'
+    states = np.random.rand(2, 10).astype(np.float32)
+    metadata = [{"id": "s1"}, {"id": "s2"}]
+    
+    col.add_states(vectors, states, metadata)
+    
+    # Verify file creation
+    assert os.path.exists("states_test_state/s1.safetensors")
+    
+    # Retrieve
+    res = col.search(vectors[0], top_k=1)
+    h = col.get_state(res[0][0])
+    assert h.shape == (10,)
+    
+    # Cleanup
+    if os.path.exists("states_test_state"):
+        shutil.rmtree("states_test_state")

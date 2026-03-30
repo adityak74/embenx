@@ -394,18 +394,14 @@ class CacheCollection(Collection):
         if save_file is None:
             raise ImportError("safetensors is required for CacheCollection.")
 
-        # Store activations in a separate folder or as metadata paths
-        # For simplicity, we'll store them as safetensors files and keep paths in metadata
         os.makedirs(f"cache_{self.name}", exist_ok=True)
-        
+
         meta = metadata or [{} for _ in range(len(vectors))]
-        
+
         for i, m in enumerate(meta):
             cache_id = m.get("id") or f"idx_{len(self._metadata) + i}"
             cache_path = os.path.join(f"cache_{self.name}", f"{cache_id}.safetensors")
-            
-            # Extract slice of activations for this document
-            # (Assuming activations are already aligned with vectors)
+
             doc_activations = {k: v[i] for k, v in activations.items()}
             save_file(doc_activations, cache_path)
             m["cache_path"] = cache_path
@@ -418,8 +414,53 @@ class CacheCollection(Collection):
         """
         if load_file is None:
             raise ImportError("safetensors is required for CacheCollection.")
-            
+
         path = metadata.get("cache_path")
         if path and os.path.exists(path):
             return load_file(path)
         return {}
+
+
+class StateCollection(Collection):
+    """
+    Specialized collection for State Space Model (SSM) hydration.
+    Supports storing hidden states (h0).
+    """
+
+    def add_states(
+        self,
+        vectors: Union[np.ndarray, List[List[float]]],
+        states: np.ndarray,
+        metadata: Optional[List[Dict[str, Any]]] = None,
+    ):
+        """
+        Add embeddings and their associated SSM hidden states.
+        """
+        if save_file is None:
+            raise ImportError("safetensors is required for StateCollection.")
+
+        os.makedirs(f"states_{self.name}", exist_ok=True)
+
+        meta = metadata or [{} for _ in range(len(vectors))]
+
+        for i, m in enumerate(meta):
+            state_id = m.get("id") or f"state_{len(self._metadata) + i}"
+            state_path = os.path.join(f"states_{self.name}", f"{state_id}.safetensors")
+
+            # Store hidden state 'h'
+            save_file({"h": states[i]}, state_path)
+            m["state_path"] = state_path
+
+        self.add(vectors, meta)
+
+    def get_state(self, metadata: Dict[str, Any]) -> np.ndarray:
+        """
+        Retrieve hidden state for a given metadata result.
+        """
+        if load_file is None:
+            raise ImportError("safetensors is required for StateCollection.")
+
+        path = metadata.get("state_path")
+        if path and os.path.exists(path):
+            return load_file(path)["h"]
+        return None
