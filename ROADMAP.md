@@ -47,8 +47,7 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 **Goal**: Integrate 2025-2026 SOTA algorithms from ArXiv.
 - [x] **ClusterKV (arXiv:2412.03213)**: Implement semantic clustering of KV/Vector pairs for improved throughput.
 - [x] **TurboQuant (arXiv:2504.19874)**: Add 1-bit sign-based quantization for aggressive activation compression.
-- [ ] **ESWM (ICLR 2026)**: Neuroscience-inspired spatial cognitive maps for navigation trajectories.
-
+- [x] **ESWM (ICLR 2026)**: Neuroscience-inspired spatial cognitive maps for navigation trajectories.
 - [ ] **Echo (arXiv:2502.16090)**: Temporal episodic memory logic for "what happened when" queries.
 
 ---

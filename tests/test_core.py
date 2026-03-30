@@ -267,3 +267,26 @@ def test_cluster_collection():
     # Search when empty
     empty = ClusterCollection(n_clusters=2)
     assert empty.search_clustered(vectors[0]) == []
+
+def test_spatial_collection():
+    from core import SpatialCollection
+    col = SpatialCollection(dimension=4)
+    vectors = np.eye(4, dtype=np.float32)
+    coords = np.array([
+        [0, 0, 0],
+        [10, 10, 10],
+        [0.1, 0.1, 0.1],
+        [100, 100, 100]
+    ], dtype=np.float32)
+    metadata = [{"id": i} for i in range(4)]
+    
+    col.add_spatial(vectors, coords, metadata)
+    
+    # Search near [0,0,0]
+    # doc 0 and 2 are near. doc 1 and 3 are far.
+    results = col.search_spatial(vectors[0], np.array([0,0,0]), top_k=2, spatial_radius=5.0)
+    assert len(results) == 2
+    ids = [r[0]["id"] for r in results]
+    assert 0 in ids
+    assert 2 in ids
+    assert 1 not in ids

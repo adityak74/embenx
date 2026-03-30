@@ -92,6 +92,7 @@ Add this to your `claude_desktop_config.json`:
 ## Features
 ...
 - **Unified Collection API** — Table-like interface for vectors and metadata.
+- **Spatial Memory (ESWM)** — Neuroscience-inspired spatial cognitive maps for navigation (ICLR 2026).
 - **TurboQuant Compression** — 1-bit sign-based quantization for activation tensors (arXiv:2504.19874).
 - **ClusterKV Optimization** — Semantic clustering for high-throughput retrieval (arXiv:2412.03213).
 - **KV Cache Offloading (RA-KVC)** — Store and retrieve high-dimensional LLM activations using `safetensors`.

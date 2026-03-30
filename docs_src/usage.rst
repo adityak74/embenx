@@ -125,6 +125,23 @@ For high-throughput scenarios, Embenx implements semantic clustering (as describ
    # Optimized search
    results = col.search_clustered(query_vector, top_k=5)
 
+Spatial Cognitive Memory (ESWM)
+------------------------------
+
+Inspired by neuroscience (ICLR 2026), Embenx supports spatial-aware episodic memory for agent navigation.
+
+.. code-block:: python
+
+   from embenx.core import SpatialCollection
+   
+   col = SpatialCollection(dimension=768)
+   
+   # Add semantic embeddings with [x, y, z] coordinates
+   col.add_spatial(vectors, coords=xyz_positions)
+   
+   # Search for similar memories near the agent's current position
+   results = col.search_spatial(query_vector, current_coords=my_pos, spatial_radius=5.0)
+
 Visual Explorer
 --------------
 

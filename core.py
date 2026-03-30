@@ -533,3 +533,55 @@ class ClusterCollection(Collection):
         
         results_idx = np.argsort(similarities)[::-1][:top_k]
         return [(cluster_metadata[i], 1.0 - float(similarities[i])) for i in results_idx]
+
+
+class SpatialCollection(Collection):
+    """
+    Specialized collection for ESWM (Episodic Spatial World Memory).
+    Supports navigation trajectories and spatial-aware retrieval.
+    """
+
+    def add_spatial(
+        self,
+        vectors: Union[np.ndarray, List[List[float]]],
+        coords: np.ndarray,
+        metadata: Optional[List[Dict[str, Any]]] = None,
+    ):
+        """
+        Add semantic embeddings and their associated spatial coordinates (x, y, z).
+        """
+        meta = metadata or [{} for _ in range(len(vectors))]
+        for i, m in enumerate(meta):
+            m["coords"] = coords[i].tolist()
+        
+        self.add(vectors, meta)
+
+    def search_spatial(
+        self, 
+        query_vector: np.ndarray, 
+        current_coords: np.ndarray, 
+        top_k: int = 5,
+        spatial_radius: float = 10.0
+    ) -> List[Tuple[Dict[str, Any], float]]:
+        """
+        Spatial-aware search that favors episodic memories near the current location.
+        """
+        # 1. Perform semantic search first
+        results = self.search(query_vector, top_k=top_k * 2)
+        
+        spatial_results = []
+        for meta, sem_dist in results:
+            item_coords = np.array(meta.get("coords", [0, 0, 0]))
+            # Euclidean distance in 3D space
+            euc_dist = np.linalg.norm(item_coords - current_coords)
+            
+            # Spatial gating (ESWM pattern)
+            if euc_dist <= spatial_radius:
+                # Combine semantic distance and spatial proximity
+                # Higher weight to spatial proximity if needed
+                combined_score = sem_dist * (1.0 + (euc_dist / spatial_radius))
+                spatial_results.append((meta, float(combined_score)))
+        
+        # Sort by combined score
+        spatial_results.sort(key=lambda x: x[1])
+        return spatial_results[:top_k]
