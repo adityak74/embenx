@@ -28,7 +28,7 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 **Goal**: Become the default memory for AI Agents (Claude, GPT-5).
 
 - [x] **MCP Server Native**: Expose Embenx collections as Model Context Protocol (MCP) tools for instant integration with Claude Desktop and other agentic IDEs.
-- [ ] **Agentic Trajectories**: Support for autonomous multi-step search loops where the model refines its own queries.
+- [x] **Agentic Memory loops**: Integrated feedback loops for self-healing ranking.
 - [ ] **Temporal Memory**: Managed `Session` objects with time-based decay for long-term agentic context.
 
 ## Milestone 6: Visualizer & DevTools ✅
@@ -56,6 +56,12 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 - [x] **MCP Server Native**: Expose Embenx collections as Model Context Protocol (MCP) tools.
 - [x] **Agentic Trajectories**: Support for autonomous query refinement using `AgenticCollection`.
 - [x] **Self-Healing Retrieval**: Integrated feedback loops to automatically update rankings.
+
+## Milestone 10: Final Polish & Ecosystem Launch (v1.1.0) ✅
+**Goal**: The gold standard for retrieval engineering.
+- [x] **Retrieval Zoo**: Launched pre-built Embenx collections via `embenx zoo-load`.
+- [x] **100% Documentation Coverage**: Every class, method, and script fully documented.
+- [x] **Ecosystem Ready**: Verified benchmarks and technical integrity.
 
 ---
 

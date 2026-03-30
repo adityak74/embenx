@@ -168,6 +168,21 @@ For autonomous agents, Embenx provides an ``AgenticCollection`` that supports fe
    # Demote a noise result
    col.feedback(doc_id="doc_noise", label="bad")
 
+Retrieval Zoo
+-------------
+
+Embenx provides a "Zoo" of pre-indexed collections for common research datasets.
+
+.. code-block:: python
+
+   from embenx.data import load_from_zoo
+   
+   # Automatically download and load SQuAD v2
+   col = load_from_zoo("squad-v2")
+   
+   # Search immediately
+   results = col.search(query_vector)
+
 Visual Explorer
 --------------
 

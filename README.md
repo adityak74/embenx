@@ -79,6 +79,7 @@ embenx explorer
 ## Features
 
 - **Unified Collection API** — Table-like interface for vectors and metadata.
+- **Retrieval Zoo** — Instant access to pre-indexed collections (SQuAD, MS-MARCO, etc.).
 - **Agentic Memory (MCP)** — Native Model Context Protocol support for AI agents.
 - **Self-Healing Retrieval** — Integrated feedback loops to automatically improve ranking accuracy.
 - **Temporal Memory (Echo)** — Recency-biased retrieval and time-window filtering (arXiv:2502.16090).

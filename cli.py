@@ -1,227 +1,182 @@
+import os
+import json
+import subprocess
+from typing import Optional, List, Dict, Any
+
 import typer
 from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
 
-app = typer.Typer(help="Embenx 🚀: Benchmark vector indexing libraries with ease")
+from core import Collection
+from mcp_server import run
+
+app = typer.Typer(help="Embenx: Universal Embedding Retrieval Toolkit & Benchmark.")
 console = Console()
 
 
 @app.command()
-def benchmark(
-    dataset: str = typer.Option(
-        ...,
-        "--dataset",
-        "-d",
-        help="HuggingFace dataset name or data format (e.g., 'csv', 'json', 'parquet')",
-    ),
-    split: str = typer.Option("train", "--split", "-s", help="Dataset split to use"),
-    text_column: str = typer.Option(
-        "text", "--text-column", "-c", help="Column containing the text to index"
-    ),
-    max_docs: int = typer.Option(
-        1000, "--max-docs", "-m", help="Maximum number of documents to index"
-    ),
-    indexers: str = typer.Option(
-        "all",
-        "--indexers",
-        "-i",
-        help="Comma-separated list or 'all'",
-    ),
-    model: str = typer.Option(
-        "ollama/nomic-embed-text",
-        "--model",
-        help="LiteLLM model name (e.g., 'ollama/nomic-embed-text', 'openai/text-embedding-3-small')",
-    ),
-    data_files: str = typer.Option(
-        None, "--data-files", help="Path to local data files (for CSV/JSON formats)"
-    ),
-    cleanup: bool = typer.Option(
-        True,
-        "--cleanup/--no-cleanup",
-        help="Automatically cleanup temporary index files after benchmarking",
-    ),
-    custom_indexer: str = typer.Option(
-        None, "--custom-indexer", help="Path to a Python script containing a custom indexer class"
-    ),
-):
+def info():
     """
-    Run Embenx benchmarks across different vector indexing libraries.
+    Display Embenx system information and installed backends.
     """
-    console.print(f"[bold green]Starting Embenx benchmark...[/bold green]")
-    console.print(f"Dataset: [cyan]{dataset}[/cyan] ({split})")
-    if data_files:
-        console.print(f"Data Files: [cyan]{data_files}[/cyan]")
-    if not cleanup:
-        console.print(f"Cleanup: [yellow]Disabled[/yellow]")
-    if custom_indexer:
-        console.print(f"Custom Indexer: [cyan]{custom_indexer}[/cyan]")
-    console.print(f"Max Docs: [cyan]{max_docs}[/cyan]")
-    console.print(f"Model: [cyan]{model}[/cyan]")
-    console.print(f"Indexers: [cyan]{indexers}[/cyan]")
+    console.print(
+        Panel.reveal(
+            "[bold rocket] Embenx v0.0.2[/bold rocket]\n[dim]The Agentic Memory Layer[/dim]",
+            title="System Info",
+            expand=False,
+        )
+    )
 
-    # We will import the benchmark engine here to avoid early loading overhead
-    from benchmark import run_benchmark
     from indexers import get_indexer_map
 
-    indexers_map = get_indexer_map()
-    all_available = list(indexers_map.keys())
+    indexer_map = get_indexer_map()
 
-    # Parse indexers
-    if indexers.lower() == "all":
-        selected_indexers = all_available
-    else:
-        selected_indexers = [x.strip().lower() for x in indexers.split(",")]
+    table = Table(title="Available Indexers", show_header=True, header_style="bold magenta")
+    table.add_column("Indexer", style="cyan")
+    table.add_column("Status", justify="center")
 
+    for name in indexer_map.keys():
+        try:
+            if name == "faiss":
+                import faiss
+            elif name == "usearch":
+                import usearch
+            elif name == "hnswlib":
+                import hnswlib
+            elif name == "annoy":
+                import annoy
+            elif name == "scann":
+                import scann
+            elif name == "chroma":
+                import chromadb
+            elif name == "qdrant":
+                import qdrant_client
+            elif name == "milvus":
+                import pymilvus
+            elif name == "lance":
+                import lancedb
+            elif name == "duckdb":
+                import duckdb
+            elif name == "weaviate":
+                import weaviate
+            elif name == "pgvector":
+                import psycopg2
+            
+            table.add_row(name, "[green]✓ Ready[/green]")
+        except ImportError:
+            table.add_row(name, "[red]✖ Missing[/red]")
+
+    console.print(table)
+
+
+@app.command()
+def setup(
+    model: str = typer.Option("ollama/nomic-embed-text", help="Embedding model to use."),
+    pull: bool = typer.Option(False, help="Whether to pull the model if using Ollama."),
+):
+    """
+    Setup the environment and verify model availability.
+    """
+    console.print("Embenx Environment Check")
+    console.print(f"[yellow]Setting up Embenx with model: {model}...[/yellow]")
+
+    if model.startswith("ollama/"):
+        model_name = model.replace("ollama/", "")
+        try:
+            if pull:
+                console.print(f"[cyan]Pulling model {model_name} via Ollama...[/cyan]")
+                subprocess.run(["ollama", "pull", model_name], check=True)
+
+            # Verify model is available
+            result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
+            if model_name in result.stdout:
+                console.print(f"[bold green]✓ Model '{model_name}' is available[/bold green]")
+            else:
+                console.print(f"[bold red]✖ Model not found in Ollama.[/bold red]")
+                console.print("[dim]Run with --pull to download it automatically.[/dim]")
+        except Exception as e:
+            console.print(f"[bold red]Ollama error: {e}[/bold red]")
+
+    console.print("\n[bold green]✓ Setup complete.[/bold green]")
+
+
+@app.command()
+def benchmark(
+    path: Optional[str] = typer.Argument(None, help="Path to local Parquet file."),
+    dataset: str = typer.Option("dummy", "--dataset", "-d", help="Hugging Face dataset name."),
+    subset: str = typer.Option("default", "--subset", "-s", help="Dataset subset."),
+    split: str = typer.Option("train", help="Dataset split."),
+    text_col: str = typer.Option("text", "--text-col", "-t", help="Column containing text."),
+    vector_col: str = typer.Option("vector", "--vector-col", help="Column containing vectors."),
+    max_docs: int = typer.Option(100, "--max-docs", "-n", help="Maximum documents to index."),
+    indexers: str = typer.Option("faiss,simple", "--indexers", "-i", help="Comma-separated list of indexers."),
+    top_k: int = typer.Option(5, help="Number of neighbors to search."),
+    custom_indexer: Optional[str] = typer.Option(None, "--custom-indexer", help="Path to custom indexer script."),
+):
+    """
+    Run Embenx benchmarks on local or remote data.
+    """
+    from benchmark import run_benchmark
+
+    indexer_list = indexers.split(",") if indexers != "all" else None
+
+    console.print("Run Embenx benchmarks")
+    console.print("[bold green]Starting Embenx Benchmark...[/bold green]")
     run_benchmark(
-        dataset_name=dataset,
+        dataset_name=dataset if not path else path,
+        subset=subset,
         split=split,
-        text_column=text_column,
+        text_col=text_col,
         max_docs=max_docs,
-        indexer_names=selected_indexers,
-        model_name=model,
-        console=console,
-        data_files=data_files,
-        cleanup=cleanup,
+        indexers=indexer_list,
+        top_k=top_k,
         custom_indexer_script=custom_indexer,
     )
 
 
 @app.command()
-def init_skill():
-    """
-    Generate a SKILL.md file for AI agents (Claude, Gemini, etc.) to use Embenx.
-    """
-    skill_content = """# Embenx Skill 🚀
-
-This skill enables the agent to perform high-performance benchmarking of vector indexing libraries using the **Embenx** CLI.
-
-## <instructions>
-- **Objective**: Assist the user in evaluating and comparing vector search backends.
-- **Core Workflow**:
-    1. **Identify Requirements**: Determine the user's dataset and the indexing libraries they wish to compare.
-    2. **Check Environment**: Always run `uv run embenx setup` first. Pass `--pull` to auto-pull a missing Ollama model.
-    3. **Execute Benchmark**:
-        - For standard HF datasets: `uv run embenx benchmark --dataset <name> --max-docs <num>`.
-        - For local data: `uv run embenx benchmark --dataset json --data-files <path> --text-column <col>`.
-    4. **Analyze Results**: Review the generated table and provide a technical recommendation.
-    5. **Cleanup**: Run `uv run embenx cleanup` after benchmarking.
-- **Safety**: Default to a small `--max-docs` (e.g., 100) for initial testing.
-</instructions>
-
-## <available_resources>
-- **Documentation**: `docs/index.html`.
-- **CLI Help**: `uv run embenx --help`.
-- **Examples**: `examples/`.
-</available_resources>
-"""
-
-    try:
-        with open("SKILL.md", "w") as f:
-            f.write(skill_content)
-        console.print("[bold green]✓ Created SKILL.md successfully.[/bold green]")
-        console.print("[cyan]AI agents can now activate this skill to use Embenx effectively.[/cyan]")
-    except Exception as e:
-        console.print(f"[bold red]✗ Failed to create SKILL.md: {e}[/bold red]")
-
-
-@app.command()
 def cleanup():
     """
-    Manually remove any leftover benchmark artifacts (*.db, *.lance, etc.)
+    Remove temporary benchmark artifacts and database files.
     """
     import glob
-    import os
-    import shutil
 
-    console.print("[bold yellow]Cleaning up benchmark artifacts...[/bold yellow]")
-
-    patterns = ["*.db", "*.lance", "benchmark", "benchmark.lance", "weaviate_data"]
-    removed_count = 0
-
+    console.print("[yellow]Cleaning up Embenx artifacts...[/yellow]")
+    patterns = ["*.db", "*.index", "*.bin", ".embenx_cache/"]
+    found_any = False
     for pattern in patterns:
-        for path in glob.glob(pattern):
+        files = glob.glob(pattern)
+        for f in files:
+            found_any = True
             try:
-                if os.path.isdir(path):
-                    shutil.rmtree(path)
+                if os.path.isdir(f):
+                    import shutil
+                    shutil.rmtree(f)
                 else:
-                    os.remove(path)
-                console.print(f" [green]✓[/green] Removed: {path}")
-                removed_count += 1
+                    os.remove(f)
+                console.print(f" - Successfully removed {f}")
             except Exception as e:
-                console.print(f" [red]✗[/red] Failed to remove {path}: {e}")
+                console.print(f" [red]Failed to remove {f}: {e}[/red]")
 
-    if removed_count == 0:
-        console.print("[cyan]No artifacts found. Workspace is clean.[/cyan]")
-    else:
-        console.print(f"[bold green]Successfully removed {removed_count} artifacts.[/bold green]")
+    if not found_any:
+        console.print("No artifacts found.")
+
+    console.print("[bold green]✓ Cleanup complete.[/bold green]")
 
 
 @app.command()
-def setup(
-    model: str = typer.Option(
-        "ollama/nomic-embed-text",
-        "--model",
-        help="LiteLLM model to verify (e.g., 'ollama/nomic-embed-text')",
-    ),
-    pull: bool = typer.Option(False, "--pull", help="Pull the Ollama model if not already available"),
-):
+def init_skill():
     """
-    Check that the environment is ready for benchmarking.
+    Initialize the Embenx skill for Gemini CLI sub-agents.
     """
-    import importlib
-    import subprocess
-
-    indexer_deps = {
-        "faiss": "faiss",
-        "chroma": "chromadb",
-        "qdrant": "qdrant_client",
-        "milvus": "pymilvus",
-        "lance": "lancedb",
-        "weaviate": "weaviate",
-        "duckdb": "duckdb",
-        "usearch": "usearch",
-        "annoy": "annoy",
-        "hnswlib": "hnswlib",
-        "scann": "scann",
-        "vespa": "vespa",
-        "elasticsearch": "elasticsearch",
-        "pgvector": "psycopg2",
-    }
-
-    console.print("\n[bold cyan]Embenx Environment Check[/bold cyan]\n")
-
-    # --- Indexers ---
-    console.print("[bold]Indexers:[/bold]")
-    all_ok = True
-    for name, pkg in indexer_deps.items():
-        try:
-            importlib.import_module(pkg)
-            console.print(f"  [green]✓[/green] {name}")
-        except ImportError:
-            console.print(f"  [yellow]✗[/yellow] {name} — [dim]uv pip install {pkg}[/dim]")
-            all_ok = False
-
-    # --- Ollama ---
-    if model.startswith("ollama/"):
-        model_name = model.split("/", 1)[1]
-        console.print(f"\n[bold]Ollama ({model_name}):[/bold]")
-        try:
-            result = subprocess.run(["ollama", "list"], capture_output=True, text=True, timeout=5)
-            if model_name in result.stdout:
-                console.print(f"  [green]✓[/green] Model '{model_name}' is available")
-            elif pull:
-                console.print(f"  [cyan]→[/cyan] Pulling {model_name}...")
-                subprocess.run(["ollama", "pull", model_name], check=True)
-                console.print(f"  [green]✓[/green] Pulled successfully")
-            else:
-                console.print(
-                    f"  [yellow]✗[/yellow] Model not found. [dim]ollama pull {model_name}[/dim]"
-                )
-                all_ok = False
-        except Exception as e:
-            console.print(f"  [red]✗[/red] Ollama error: {e}")
-            all_ok = False
-
-    console.print(f"\n{'[bold green]✓ Ready!' if all_ok else '[bold yellow]⚠ Fix issues above.'}")
+    skill_content = """# Embenx Skill 🚀
+Optimized for high-performance embedding retrieval and benchmarking.
+Use `Collection` for high-level operations.
+    """
+    with open("SKILL.md", "w") as f:
+        f.write(skill_content)
+    console.print("[bold green]Created SKILL.md successfully[/bold green]")
 
 
 @app.command()
@@ -230,11 +185,10 @@ def mcp_start():
     Start the Embenx MCP server for agentic tool-use.
     """
     import asyncio
-    from mcp_server import run
-    
     console.print("[bold green]Starting Embenx MCP Server...[/bold green]")
     console.print("[cyan]Connect your agent (Claude Desktop, etc.) via stdio.[/cyan]")
     asyncio.run(run())
+
 
 @app.command()
 def explorer():
@@ -242,16 +196,41 @@ def explorer():
     Launch the Embenx Explorer web UI to visualize collections.
     """
     import subprocess
-    import sys
-    
     console.print("[bold green]Launching Embenx Explorer...[/bold green]")
     try:
-        # Run streamlit as a subprocess
         subprocess.run(["streamlit", "run", "explorer.py"], check=True)
     except KeyboardInterrupt:
         console.print("\n[yellow]Explorer stopped.[/yellow]")
     except Exception as e:
         console.print(f"[bold red]Error launching explorer: {e}[/bold red]")
+
+
+@app.command()
+def zoo_list():
+    """
+    List all available pre-indexed collections in the Embenx Retrieval Zoo.
+    """
+    from data import list_zoo
+    datasets = list_zoo()
+    console.print("[bold cyan]Embenx Retrieval Zoo[/bold cyan]")
+    for ds in datasets:
+        console.print(f" - {ds}")
+
+
+@app.command()
+def zoo_load(name: str):
+    """
+    Download and load a collection from the Embenx Retrieval Zoo.
+    """
+    from data import load_from_zoo
+    try:
+        console.print(f"[yellow]Loading {name} from zoo...[/yellow]")
+        col = load_from_zoo(name)
+        console.print(f"[bold green]✓ Successfully loaded {name}[/bold green]")
+        console.print(f"Size: {len(col._metadata)} documents")
+    except Exception as e:
+        console.print(f"[bold red]Error: {e}[/bold red]")
+
 
 @app.command()
 def list_indexers():
@@ -259,11 +238,34 @@ def list_indexers():
     List available indexing libraries for benchmarking.
     """
     from indexers import get_indexer_map
-
+    indexer_map = get_indexer_map()
     console.print("[bold cyan]Available Indexers:[/bold cyan]")
-    indexers = list(get_indexer_map().keys())
-    for idx in indexers:
-        console.print(f" - {idx}")
+    for name in indexer_map.keys():
+        console.print(f" - {name}")
+
+
+@app.command()
+def check():
+    """
+    Verify environment and dependencies.
+    """
+    from indexers import get_indexer_map
+
+    indexer_map = get_indexer_map()
+    all_ok = True
+
+    console.print("[bold cyan]Dependency Check:[/bold cyan]")
+    for name in indexer_map.keys():
+        try:
+            # Simple check for top-level libraries
+            if name == "faiss": import faiss
+            elif name == "usearch": import usearch
+            console.print(f" - {name}: [green]Installed[/green]")
+        except ImportError:
+            console.print(f" - {name}: [yellow]Not found[/yellow]")
+            all_ok = False
+
+    console.print(f"\n{'[bold green]✓ Ready!' if all_ok else '[bold yellow]⚠ Fix issues above.'}")
 
 
 if __name__ == "__main__":
