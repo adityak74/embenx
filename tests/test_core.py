@@ -169,3 +169,30 @@ def test_collection_errors():
         
     with pytest.raises(ValueError, match="Indexer type 'invalid' not found"):
         Collection(dimension=4, indexer_type="invalid")
+
+def test_cache_collection(tmp_path):
+    from core import CacheCollection
+    import shutil
+    
+    col = CacheCollection(name="test_cache", dimension=4)
+    vectors = np.random.rand(2, 4).astype(np.float32)
+    activations = {
+        "k": np.random.rand(2, 8).astype(np.float32),
+        "v": np.random.rand(2, 8).astype(np.float32)
+    }
+    metadata = [{"id": "doc1"}, {"id": "doc2"}]
+    
+    col.add_cache(vectors, activations, metadata)
+    
+    # Verify file creation
+    assert os.path.exists("cache_test_cache/doc1.safetensors")
+    
+    # Retrieve
+    res = col.search(vectors[0], top_k=1)
+    cached = col.get_cache(res[0][0])
+    assert "k" in cached
+    assert cached["k"].shape == (8,)
+    
+    # Cleanup
+    if os.path.exists("cache_test_cache"):
+        shutil.rmtree("cache_test_cache")

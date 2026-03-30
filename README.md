@@ -92,6 +92,7 @@ Add this to your `claude_desktop_config.json`:
 ## Features
 ...
 - **Unified Collection API** — Table-like interface for vectors and metadata.
+- **KV Cache Offloading (RA-KVC)** — Store and retrieve high-dimensional LLM activations using `safetensors`.
 - **Trajectory Retrieval** — Search for similar state/action sequences for World Models.
 - **Visual Explorer** — Built-in web UI to visualize vector clusters and metadata.
 - **Agentic Memory (MCP)** — Native Model Context Protocol support for AI agents.

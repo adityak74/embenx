@@ -1,10 +1,16 @@
 import os
+import json
 from typing import Any, Dict, List, Optional, Union, Tuple
 
 import numpy as np
 import pandas as pd
 
 from indexers import get_indexer_map, BaseIndexer
+
+try:
+    from safetensors.numpy import save_file, load_file
+except ImportError:
+    save_file = load_file = None
 
 
 class Collection:
@@ -368,3 +374,52 @@ class Collection:
     def __repr__(self) -> str:
         count = len(self._metadata) if self._metadata else 0
         return f"Collection(name='{self.name}', size={count}, indexer='{self.indexer_type}', sparse='{self.sparse_indexer_type}')"
+
+
+class CacheCollection(Collection):
+    """
+    Specialized collection for Retrieval-Augmented KV Caching (RA-KVC).
+    Supports storing high-dimensional activation tensors.
+    """
+
+    def add_cache(
+        self,
+        vectors: Union[np.ndarray, List[List[float]]],
+        activations: Dict[str, np.ndarray],
+        metadata: Optional[List[Dict[str, Any]]] = None,
+    ):
+        """
+        Add embeddings and their associated KV cache activations.
+        """
+        if save_file is None:
+            raise ImportError("safetensors is required for CacheCollection.")
+
+        # Store activations in a separate folder or as metadata paths
+        # For simplicity, we'll store them as safetensors files and keep paths in metadata
+        os.makedirs(f"cache_{self.name}", exist_ok=True)
+        
+        meta = metadata or [{} for _ in range(len(vectors))]
+        
+        for i, m in enumerate(meta):
+            cache_id = m.get("id") or f"idx_{len(self._metadata) + i}"
+            cache_path = os.path.join(f"cache_{self.name}", f"{cache_id}.safetensors")
+            
+            # Extract slice of activations for this document
+            # (Assuming activations are already aligned with vectors)
+            doc_activations = {k: v[i] for k, v in activations.items()}
+            save_file(doc_activations, cache_path)
+            m["cache_path"] = cache_path
+
+        self.add(vectors, meta)
+
+    def get_cache(self, metadata: Dict[str, Any]) -> Dict[str, np.ndarray]:
+        """
+        Retrieve activations for a given metadata result.
+        """
+        if load_file is None:
+            raise ImportError("safetensors is required for CacheCollection.")
+            
+        path = metadata.get("cache_path")
+        if path and os.path.exists(path):
+            return load_file(path)
+        return {}

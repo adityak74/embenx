@@ -70,6 +70,25 @@ Embenx supports searching for similar sequences of vectors, which is useful for 
    # Search using mean-pooling (default)
    results = col.search_trajectory(trajectory, top_k=5, pooling="mean")
 
+KV Cache Offloading (RA-KVC)
+---------------------------
+
+Embenx provides a specialized ``CacheCollection`` for storing and retrieving high-dimensional LLM activations (KV cache pairs).
+
+.. code-block:: python
+
+   from embenx.core import CacheCollection
+   
+   col = CacheCollection(name="my_cache", dimension=128)
+   
+   # Add embeddings and associated activations
+   # activations is a dict of numpy arrays
+   col.add_cache(vectors, activations={"k": k_tensors, "v": v_tensors})
+   
+   # Retrieve later
+   results = col.search(query_vector)
+   cached_kv = col.get_cache(results[0][0])
+
 Visual Explorer
 --------------
 
