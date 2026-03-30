@@ -220,3 +220,28 @@ def test_state_collection(tmp_path):
     # Cleanup
     if os.path.exists("states_test_state"):
         shutil.rmtree("states_test_state")
+
+def test_cluster_collection():
+    from core import ClusterCollection
+    col = ClusterCollection(n_clusters=2, dimension=4)
+    vectors = np.array([
+        [1, 0, 0, 0],
+        [1.1, 0, 0, 0],
+        [0, 0, 0, 1],
+        [0, 0, 0, 1.1]
+    ], dtype=np.float32)
+    metadata = [{"id": i} for i in range(4)]
+    
+    col.add(vectors, metadata)
+    col.cluster_data()
+    
+    assert len(col.cluster_map) == 2
+    assert "cluster_id" in col._metadata[0]
+    
+    # Clustered search
+    results = col.search_clustered(vectors[0], top_k=2)
+    assert len(results) == 2
+    
+    # Search when empty
+    empty = ClusterCollection(n_clusters=2)
+    assert empty.search_clustered(vectors[0]) == []

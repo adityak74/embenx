@@ -31,18 +31,25 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 - [ ] **Agentic Trajectories**: Support for autonomous multi-step search loops where the model refines its own queries.
 - [ ] **Temporal Memory**: Managed `Session` objects with time-based decay for long-term agentic context.
 
-## Milestone 6: Visualizer & DevTools (v0.6.0) 🚧
+## Milestone 6: Visualizer & DevTools (v0.6.0) ✅
 **Goal**: Provide the best developer experience in the ecosystem.
 
 - [x] **Embenx Explorer**: A lightweight, built-in web UI to visualize vector clusters and metadata distributions (built with Streamlit).
 - [ ] **HNSW Graph Visualizer**: Interactive 3D visualization of the HNSW graph traversal during search.
 - [ ] **Export to production**: One-click export from local Embenx collections to production clusters.
 
-
 ## Milestone 7: Advanced World Models (v0.7.0) ✅
 - [x] **Trajectory Retrieval**: Search *sequences* of vectors (action/state trajectories) with mean/max pooling.
 - [x] **Retrieval-Augmented KV Caching (RA-KVC)**: Off-path KV storage using `safetensors`.
 - [x] **State Space Hydration**: Prime initial hidden states ($h_0$) of SSMs (Mamba-2) using `StateCollection`.
+
+## Milestone 8: Research-Driven Optimizations (v1.0.0) 🚧
+**Goal**: Integrate 2025-2026 SOTA algorithms from ArXiv.
+
+- [x] **ClusterKV (arXiv:2412.03213)**: Implement semantic clustering of KV/Vector pairs for improved throughput.
+- [ ] **TurboQuant (arXiv:2504.19874)**: Add 1-bit QJL and MSE-optimized quantization for activations.
+- [ ] **ESWM (ICLR 2026)**: Neuroscience-inspired spatial cognitive maps for navigation trajectories.
+- [ ] **Echo (arXiv:2502.16090)**: Temporal episodic memory logic for "what happened when" queries.
 
 ---
 

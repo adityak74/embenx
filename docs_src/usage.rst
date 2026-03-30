@@ -107,6 +107,24 @@ For architectures like Mamba-2 or Jamba, Embenx supports storing the initial hid
    results = col.search(query_vector)
    h0 = col.get_state(results[0][0])
 
+ClusterKV Optimization
+---------------------
+
+For high-throughput scenarios, Embenx implements semantic clustering (as described in ClusterKV, arXiv:2412.03213) to optimize retrieval.
+
+.. code-block:: python
+
+   from embenx.core import ClusterCollection
+   
+   col = ClusterCollection(n_clusters=10, dimension=768)
+   col.add(vectors, metadata)
+   
+   # Perform clustering
+   col.cluster_data()
+   
+   # Optimized search
+   results = col.search_clustered(query_vector, top_k=5)
+
 Visual Explorer
 --------------
 

@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Union, Tuple
 
 import numpy as np
 import pandas as pd
+from sklearn.cluster import KMeans
 
 from indexers import get_indexer_map, BaseIndexer
 
@@ -464,3 +465,64 @@ class StateCollection(Collection):
         if path and os.path.exists(path):
             return load_file(path)["h"]
         return None
+
+
+class ClusterCollection(Collection):
+    """
+    Specialized collection for ClusterKV-style optimizations.
+    Implements semantic clustering of vectors for improved retrieval throughput.
+    """
+
+    def __init__(self, n_clusters: int = 10, **kwargs):
+        super().__init__(**kwargs)
+        self.n_clusters = n_clusters
+        self.kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        self.cluster_map = {} # cluster_id -> list of indices
+
+    def cluster_data(self):
+        """
+        Perform semantic clustering on the current collection data.
+        """
+        if self._vectors is None or len(self._vectors) < self.n_clusters:
+            return
+            
+        cluster_labels = self.kmeans.fit_predict(self._vectors)
+        
+        self.cluster_map = {}
+        for i, label in enumerate(cluster_labels):
+            label = int(label)
+            if label not in self.cluster_map:
+                self.cluster_map[label] = []
+            self.cluster_map[label].append(i)
+            
+        # Update metadata with cluster info
+        for i, label in enumerate(cluster_labels):
+            self._metadata[i]["cluster_id"] = int(label)
+
+    def search_clustered(self, query: np.ndarray, top_k: int = 5) -> List[Tuple[Dict[str, Any], float]]:
+        """
+        Search for vectors by first identifying the most relevant cluster.
+        """
+        if self._vectors is None:
+            return []
+            
+        # 1. Identify nearest cluster
+        query_vec = np.array(query).reshape(1, -1).astype(np.float32)
+        cluster_id = int(self.kmeans.predict(query_vec)[0])
+        
+        # 2. Retrieve indices for this cluster
+        indices = self.cluster_map.get(cluster_id, [])
+        if not indices:
+            return self.search(query, top_k=top_k)
+            
+        # 3. Brute force within cluster (simulating ClusterKV pattern)
+        cluster_vectors = self._vectors[indices]
+        cluster_metadata = [self._metadata[i] for i in indices]
+        
+        # Simple cosine similarity within cluster
+        norms = np.linalg.norm(cluster_vectors, axis=1) * np.linalg.norm(query)
+        norms[norms == 0] = 1.0
+        similarities = np.dot(cluster_vectors, query.flatten()) / norms
+        
+        results_idx = np.argsort(similarities)[::-1][:top_k]
+        return [(cluster_metadata[i], 1.0 - float(similarities[i])) for i in results_idx]
