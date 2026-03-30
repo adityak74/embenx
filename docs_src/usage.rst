@@ -54,6 +54,22 @@ When initializing a ``Collection``, you can choose from the following ``indexer_
    metrics = col.evaluate(indexer_type="faiss-hnsw", top_k=10)
    print(f"Recall: {metrics['recall']}, Latency: {metrics['latency_ms']}ms")
 
+Trajectory Retrieval
+-------------------
+
+Embenx supports searching for similar sequences of vectors, which is useful for World Models and robotic state trajectories.
+
+.. code-block:: python
+
+   # Define a sequence of vectors
+   trajectory = [
+       [0.1, 0.2, 0.3, 0.4],
+       [0.2, 0.3, 0.4, 0.5]
+   ]
+   
+   # Search using mean-pooling (default)
+   results = col.search_trajectory(trajectory, top_k=5, pooling="mean")
+
 Visual Explorer
 --------------
 

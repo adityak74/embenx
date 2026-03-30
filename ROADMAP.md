@@ -39,8 +39,8 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 - [ ] **Export to production**: One-click export from local Embenx collections to production clusters.
 
 
-## Milestone 7: Advanced World Models (v0.7.0) 🌌
-- [ ] **Trajectory Retrieval**: Search *sequences* of vectors (action/state trajectories).
+## Milestone 7: Advanced World Models (v0.7.0) 🚧
+- [x] **Trajectory Retrieval**: Search *sequences* of vectors (action/state trajectories) with mean/max pooling.
 - [ ] **Retrieval-Augmented KV Caching (RA-KVC)**: Off-path KV storage to break the context-window "RAM Wall."
 - [ ] **State Space Hydration**: Prime initial hidden states ($h_0$) of SSMs (Mamba-2).
 

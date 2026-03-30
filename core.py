@@ -64,11 +64,11 @@ class Collection:
     ):
         """Add vectors and metadata to the collection."""
         vectors = np.array(vectors).astype(np.float32)
-        
+
         # Handle Matryoshka truncation during add if specified
         if self.truncate_dim:
             vectors = vectors[:, : self.truncate_dim]
-            
+
         if self.dimension is None:
             self._init_indexer(vectors.shape[1])
         elif vectors.shape[1] != self.dimension:
@@ -141,6 +141,35 @@ class Collection:
             return _process_single(query_vec)
         else:
             return [_process_single(q) for q in query_vec]
+
+    def search_trajectory(
+        self,
+        trajectory: Union[np.ndarray, List[List[float]]],
+        top_k: int = 5,
+        pooling: str = "mean",
+        where: Optional[Dict[str, Any]] = None,
+    ) -> List[Tuple[Dict[str, Any], float]]:
+        """
+        Search for similar trajectories (sequences of vectors).
+
+        Args:
+            trajectory: Sequence of vectors representing a state/action trajectory.
+            top_k: Number of results to return.
+            pooling: Method to pool the trajectory into a single search vector ('mean' or 'max').
+            where: Metadata filter dictionary.
+        """
+        traj_vecs = np.array(trajectory).astype(np.float32)
+        if len(traj_vecs.shape) != 2:
+            raise ValueError("Trajectory must be a 2D array (sequence of vectors).")
+
+        if pooling == "mean":
+            query_vec = np.mean(traj_vecs, axis=0)
+        elif pooling == "max":
+            query_vec = np.max(traj_vecs, axis=0)
+        else:
+            raise ValueError(f"Unknown pooling method: {pooling}")
+
+        return self.search(query_vec, top_k=top_k, where=where)
 
     def hybrid_search(
         self,

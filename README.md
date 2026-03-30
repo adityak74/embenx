@@ -92,6 +92,7 @@ Add this to your `claude_desktop_config.json`:
 ## Features
 ...
 - **Unified Collection API** — Table-like interface for vectors and metadata.
+- **Trajectory Retrieval** — Search for similar state/action sequences for World Models.
 - **Visual Explorer** — Built-in web UI to visualize vector clusters and metadata.
 - **Agentic Memory (MCP)** — Native Model Context Protocol support for AI agents.
 - **Hybrid Search** — Combine dense vectors with sparse BM25 retrieval using RRF.

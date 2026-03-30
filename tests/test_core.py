@@ -101,6 +101,30 @@ def test_collection_evaluate():
     assert "latency_ms" in res
     assert res["recall"] == 1.0
 
+def test_collection_search_trajectory():
+    col = Collection(dimension=4)
+    target = np.array([1, 1, 1, 1], dtype=np.float32)
+    col.add([target], [{"id": "target"}])
+    
+    traj = np.array([
+        [0.5, 0.5, 0.5, 0.5],
+        [1.5, 1.5, 1.5, 1.5]
+    ], dtype=np.float32)
+    
+    # Test mean pooling
+    results = col.search_trajectory(traj, top_k=1, pooling="mean")
+    assert results[0][0]["id"] == "target"
+    
+    # Test max pooling
+    results_max = col.search_trajectory(traj, top_k=1, pooling="max")
+    assert results_max[0][0]["id"] == "target"
+    
+    with pytest.raises(ValueError, match="Trajectory must be a 2D array"):
+        col.search_trajectory([1, 2, 3], top_k=1)
+        
+    with pytest.raises(ValueError, match="Unknown pooling method"):
+        col.search_trajectory(traj, top_k=1, pooling="invalid")
+
 def test_collection_evaluate_empty():
     col = Collection(dimension=4)
     with pytest.raises(RuntimeError, match="Collection is empty"):
