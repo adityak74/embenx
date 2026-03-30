@@ -83,7 +83,7 @@ Embenx provides a specialized ``CacheCollection`` for storing and retrieving hig
    
    # Add embeddings and associated activations
    # activations is a dict of numpy arrays
-   col.add_cache(vectors, activations={"k": k_tensors, "v": v_tensors})
+   col.add_cache(vectors, activations={"k": k_tensors, "v": v_tensors}, quantize=True)
    
    # Retrieve later
    results = col.search(query_vector)

@@ -197,6 +197,28 @@ def test_cache_collection(tmp_path):
     if os.path.exists("cache_test_cache"):
         shutil.rmtree("cache_test_cache")
 
+def test_cache_collection_quantized():
+    from core import CacheCollection
+    import shutil
+    
+    col = CacheCollection(name="test_q_cache", dimension=4)
+    vectors = np.random.rand(1, 4).astype(np.float32)
+    activations = {"k": np.array([[1.5, -0.5, 0.0, 2.0]], dtype=np.float32)}
+    metadata = [{"id": "q1"}]
+    
+    col.add_cache(vectors, activations, metadata, quantize=True)
+    
+    res = col.search(vectors[0], top_k=1)
+    cached = col.get_cache(res[0][0])
+    
+    assert cached["k"].dtype == np.int8
+    # 1.5 -> 1, -0.5 -> -1, 0.0 -> 0, 2.0 -> 1
+    assert np.array_equal(cached["k"], np.array([1, -1, 0, 1], dtype=np.int8))
+    assert res[0][0]["quantized"] is True
+    
+    if os.path.exists("cache_test_q_cache"):
+        shutil.rmtree("cache_test_q_cache")
+
 def test_state_collection(tmp_path):
     from core import StateCollection
     import shutil

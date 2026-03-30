@@ -388,6 +388,7 @@ class CacheCollection(Collection):
         vectors: Union[np.ndarray, List[List[float]]],
         activations: Dict[str, np.ndarray],
         metadata: Optional[List[Dict[str, Any]]] = None,
+        quantize: bool = False
     ):
         """
         Add embeddings and their associated KV cache activations.
@@ -404,6 +405,12 @@ class CacheCollection(Collection):
             cache_path = os.path.join(f"cache_{self.name}", f"{cache_id}.safetensors")
 
             doc_activations = {k: v[i] for k, v in activations.items()}
+            
+            if quantize:
+                # Simple 1-bit quantization (sign-based) as per TurboQuant concepts
+                doc_activations = {k: np.sign(v).astype(np.int8) for k, v in doc_activations.items()}
+                m["quantized"] = True
+                
             save_file(doc_activations, cache_path)
             m["cache_path"] = cache_path
 
