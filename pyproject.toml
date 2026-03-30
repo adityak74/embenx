@@ -25,6 +25,8 @@ dependencies = [
     "hnswlib>=0.8.0",
     "psycopg2-binary>=2.9.0",
     "rank-bm25>=0.2.2",
+    "rerankers>=0.10.0",
+    "flashrank>=0.2.10",
 ]
 
 [tool.ruff]

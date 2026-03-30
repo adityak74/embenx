@@ -1,16 +1,18 @@
-from typing import List
+from typing import List, Optional
 
 import litellm
 
 
 class Embedder:
-    def __init__(self, model_name: str, batch_size: int = 32):
+    def __init__(self, model_name: str, batch_size: int = 32, truncate_dim: Optional[int] = None):
         """
         model_name should be in LiteLLM format, e.g., 'ollama/nomic-embed-text'.
         batch_size is the number of texts to embed in a single request.
+        truncate_dim: If set, truncates the embeddings to this dimension (Matryoshka).
         """
         self.model_name = model_name
         self.batch_size = batch_size
+        self.truncate_dim = truncate_dim
         self.total_tokens_approx = 0
 
     def embed_texts(self, texts: List[str]) -> List[List[float]]:
@@ -24,7 +26,10 @@ class Embedder:
                 response = litellm.embedding(model=self.model_name, input=batch)
 
                 for data in response["data"]:
-                    all_embeddings.append(data["embedding"])
+                    emb = data["embedding"]
+                    if self.truncate_dim:
+                        emb = emb[: self.truncate_dim]
+                    all_embeddings.append(emb)
 
                 if "usage" in response:
                     self.total_tokens_approx += response["usage"].get("total_tokens", 0)

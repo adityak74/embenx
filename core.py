@@ -19,10 +19,13 @@ class Collection:
         dimension: Optional[int] = None,
         indexer_type: str = "faiss",
         sparse_indexer_type: Optional[str] = None,
+        truncate_dim: Optional[int] = None,
         **indexer_kwargs,
     ):
         self.name = name
-        self.dimension = dimension
+        self.dimension = truncate_dim if truncate_dim else dimension
+        self.full_dimension = dimension
+        self.truncate_dim = truncate_dim
         self.indexer_type = indexer_type.lower()
         self.sparse_indexer_type = sparse_indexer_type.lower() if sparse_indexer_type else None
         self.indexer_kwargs = indexer_kwargs
@@ -31,8 +34,8 @@ class Collection:
         self._vectors = None
         self._metadata = []
 
-        if dimension:
-            self._init_indexer(dimension)
+        if self.dimension:
+            self._init_indexer(self.dimension)
         if self.sparse_indexer_type:
             self._init_sparse_indexer()
 
@@ -61,6 +64,11 @@ class Collection:
     ):
         """Add vectors and metadata to the collection."""
         vectors = np.array(vectors).astype(np.float32)
+        
+        # Handle Matryoshka truncation during add if specified
+        if self.truncate_dim:
+            vectors = vectors[:, : self.truncate_dim]
+            
         if self.dimension is None:
             self._init_indexer(vectors.shape[1])
         elif vectors.shape[1] != self.dimension:
@@ -89,7 +97,8 @@ class Collection:
         query: Union[np.ndarray, List[float]],
         top_k: int = 5,
         where: Optional[Dict[str, Any]] = None,
-        reranker: Optional[callable] = None,
+        reranker: Optional[Union[callable, "RerankHandler"]] = None,
+        query_text: Optional[str] = None,
     ) -> List[Tuple[Dict[str, Any], float]]:
         """
         Search the collection for the nearest neighbors.
@@ -98,7 +107,8 @@ class Collection:
             query: Vector to search for.
             top_k: Number of results to return.
             where: Metadata filter dictionary.
-            reranker: A callable that takes (query, results) and returns reranked results.
+            reranker: A callable or RerankHandler for re-scoring.
+            query_text: Original text for reranking context.
         """
         if self.indexer is None:
             raise RuntimeError("Collection is empty. Add data before searching.")
@@ -109,13 +119,22 @@ class Collection:
             search_k = max(top_k * 10, 100)
 
         query_vec = np.array(query).astype(np.float32)
+        if self.truncate_dim:
+            if len(query_vec.shape) == 1:
+                query_vec = query_vec[: self.truncate_dim]
+            else:
+                query_vec = query_vec[:, : self.truncate_dim]
 
         def _process_single(q):
             results = self.indexer.search(q.tolist(), top_k=search_k)
             if where:
                 results = self._apply_filter(results, where)
             if reranker:
-                results = reranker(q, results)
+                # If it's a RerankHandler, use its rerank method
+                if hasattr(reranker, "rerank") and query_text:
+                    results = reranker.rerank(query_text, results, top_k=top_k)
+                else:
+                    results = reranker(q, results)
             return results[:top_k]
 
         if len(query_vec.shape) == 1:
