@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from typing import Any, Dict, List, Optional, Union, Tuple
 
 import numpy as np
@@ -585,3 +586,68 @@ class SpatialCollection(Collection):
         # Sort by combined score
         spatial_results.sort(key=lambda x: x[1])
         return spatial_results[:top_k]
+
+
+class TemporalCollection(Collection):
+    """
+    Specialized collection for Echo-style temporal episodic memory.
+    Supports time-stamped embeddings and recency-biased retrieval.
+    """
+
+    def add_temporal(
+        self,
+        vectors: Union[np.ndarray, List[List[float]]],
+        timestamps: Optional[List[float]] = None,
+        metadata: Optional[List[Dict[str, Any]]] = None,
+    ):
+        """
+        Add embeddings with Unix timestamps.
+        """
+        if timestamps is None:
+            timestamps = [time.time()] * len(vectors)
+            
+        meta = metadata or [{} for _ in range(len(vectors))]
+        for i, m in enumerate(meta):
+            m["timestamp"] = float(timestamps[i])
+            
+        self.add(vectors, meta)
+
+    def search_temporal(
+        self,
+        query_vector: np.ndarray,
+        top_k: int = 5,
+        recency_weight: float = 0.5,
+        time_window: Optional[Tuple[float, float]] = None,
+    ) -> List[Tuple[Dict[str, Any], float]]:
+        """
+        Temporal-aware search that ranks results by similarity and recency.
+        """
+        # 1. Semantic search
+        results = self.search(query_vector, top_k=top_k * 5)
+        
+        current_time = time.time()
+        temporal_results = []
+        
+        for meta, sem_dist in results:
+            ts = meta.get("timestamp", 0.0)
+            
+            # 2. Time window filtering
+            if time_window:
+                if not (time_window[0] <= ts <= time_window[1]):
+                    continue
+            
+            # 3. Recency scoring (normalized time difference)
+            # Smaller diff = more recent = higher boost
+            time_diff = max(0, current_time - ts)
+            # Simple decay: 1 / (1 + log(1 + time_diff))
+            recency_score = 1.0 / (1.0 + np.log1p(time_diff))
+            
+            # Combined score (Distance is lower-better, Recency is higher-better)
+            # We convert recency to a 'temporal distance': 1 - recency
+            temporal_dist = 1.0 - recency_score
+            combined_score = (sem_dist * (1.0 - recency_weight)) + (temporal_dist * recency_weight)
+            
+            temporal_results.append((meta, float(combined_score)))
+            
+        temporal_results.sort(key=lambda x: x[1])
+        return temporal_results[:top_k]

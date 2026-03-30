@@ -11,7 +11,7 @@
   <a href="https://github.com/adityak74/embenx/stargazers"><img src="https://img.shields.io/github/stars/adityak74/embenx?style=flat-square&color=yellow" alt="Stars"/></a>
   <a href="https://github.com/adityak74/embenx/issues"><img src="https://img.shields.io/github/issues/adityak74/embenx?style=flat-square" alt="Issues"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="MIT License"/></a>
-  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.9+-blue.svg?style=flat-square" alt="Python 3.9+"/></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg?style=flat-square" alt="Python 3.10+"/></a>
   <a href="https://adityak74.github.io/embenx/"><img src="https://img.shields.io/badge/docs-live-brightgreen?style=flat-square" alt="Docs"/></a>
   <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/badge/uv-ready-purple.svg?style=flat-square" alt="uv ready"/></a>
 </p>
@@ -41,7 +41,7 @@ col = Collection(dimension=768, indexer_type="faiss-hnsw")
 # 2. Add data
 col.add(
     vectors=[[0.1, 0.2, ...], [0.3, 0.4, ...]],
-    metadata=[{"category": "AI", "id": 1}, {"category": "Tools", "id": 2}]
+    metadata=[{"category": "AI", "id": 1, "text": "The quick brown fox"}]
 )
 
 # 3. Search with filtering
@@ -76,40 +76,21 @@ Embenx provides a built-in web UI to visualize your vector collections and metad
 embenx explorer
 ```
 
-### 2. Configure Claude Desktop
-Add this to your `claude_desktop_config.json`:
-```json
-{
-  "mcpServers": {
-    "embenx": {
-      "command": "uv",
-      "args": ["--directory", "/path/to/embenx", "run", "embenx", "mcp-start"]
-    }
-  }
-}
-```
-
 ## Features
-...
+
 - **Unified Collection API** — Table-like interface for vectors and metadata.
+- **Agentic Memory (MCP)** — Native Model Context Protocol support for AI agents.
+- **Temporal Memory (Echo)** — Recency-biased retrieval and time-window filtering (arXiv:2502.16090).
 - **Spatial Memory (ESWM)** — Neuroscience-inspired spatial cognitive maps for navigation (ICLR 2026).
 - **TurboQuant Compression** — 1-bit sign-based quantization for activation tensors (arXiv:2504.19874).
 - **ClusterKV Optimization** — Semantic clustering for high-throughput retrieval (arXiv:2412.03213).
+- **Hybrid Search** — Combine dense vectors with sparse BM25 retrieval using RRF.
 - **KV Cache Offloading (RA-KVC)** — Store and retrieve high-dimensional LLM activations using `safetensors`.
 - **SSM State Hydration** — Persist and prime hidden states ($h_0$) for State Space Models (Mamba-2).
 - **Trajectory Retrieval** — Search for similar state/action sequences for World Models.
 - **Visual Explorer** — Built-in web UI to visualize vector clusters and metadata.
-- **Agentic Memory (MCP)** — Native Model Context Protocol support for AI agents.
-- **Hybrid Search** — Combine dense vectors with sparse BM25 retrieval using RRF.
-
-- **Recall Evaluation** — Built-in tools to measure ANN accuracy against exact search.
-- **Library-Native Benchmarking** — Compare performance directly from Python code.
-- **Metadata Filtering** — Native 'where' clause support for filtered retrieval.
-- **Reranking Hooks** — Easily plug in Cross-Encoders or custom reranking logic.
-- **Quantization Support** — SQ8, PQ, F16, and I8 indices for memory efficiency.
 - **Universal model support** — Integrated LiteLLM for any embedding provider.
 - **Portable Formats** — Native support for Parquet, NumPy (.npy/.npz), and FAISS (.index).
-- **Multi-Backend** — 15+ backends including FAISS (IVF, HNSW), ScaNN, pgvector, USearch, and more.
 
 ## Supported Indexers
 
@@ -130,7 +111,7 @@ pip install embenx
 
 ## Roadmap
 
-See [ROADMAP.md](ROADMAP.md) for our journey towards hybrid search and production-grade retrieval.
+See [ROADMAP.md](ROADMAP.md) for our journey towards production-grade agentic retrieval.
 
 ## License
 

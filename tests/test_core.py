@@ -290,3 +290,33 @@ def test_spatial_collection():
     assert 0 in ids
     assert 2 in ids
     assert 1 not in ids
+
+def test_temporal_collection():
+    from core import TemporalCollection
+    import time
+    
+    col = TemporalCollection(dimension=4)
+    vectors = np.eye(4, dtype=np.float32)
+    now = time.time()
+    # 0: now, 1: 1h ago, 2: 2h ago, 3: 10h ago
+    timestamps = [now, now - 3600, now - 7200, now - 36000]
+    metadata = [{"id": i} for i in range(4)]
+    
+    col.add_temporal(vectors, timestamps, metadata)
+    
+    # 1. Recency search (query=v0 which is 'now')
+    results = col.search_temporal(vectors[0], top_k=2, recency_weight=0.9)
+    assert results[0][0]["id"] == 0
+    
+    # 2. Window search (last 3 hours)
+    window = (now - 10800, now + 10)
+    results_window = col.search_temporal(vectors[0], top_k=10, time_window=window)
+    # Should have 0, 1, 2. Doc 3 is outside.
+    assert len(results_window) == 3
+    ids = [r[0]["id"] for r in results_window]
+    assert 3 not in ids
+    
+    # 3. Default timestamps
+    col_def = TemporalCollection(dimension=4)
+    col_def.add_temporal(vectors[:1])
+    assert "timestamp" in col_def._metadata[0]

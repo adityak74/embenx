@@ -142,6 +142,28 @@ Inspired by neuroscience (ICLR 2026), Embenx supports spatial-aware episodic mem
    # Search for similar memories near the agent's current position
    results = col.search_spatial(query_vector, current_coords=my_pos, spatial_radius=5.0)
 
+Temporal Episodic Memory (Echo)
+------------------------------
+
+Embenx supports time-aware retrieval (as described in Echo, arXiv:2502.16090), allowing for recency-biased search and time-window filtering.
+
+.. code-block:: python
+
+   from embenx.core import TemporalCollection
+   import time
+   
+   col = TemporalCollection(dimension=768)
+   
+   # Add embeddings with timestamps (Unix epochs)
+   col.add_temporal(vectors, timestamps=[time.time() - 3600, time.time()])
+   
+   # Search with recency bias (0.7 weight to recency)
+   results = col.search_temporal(query_vector, recency_weight=0.7)
+   
+   # Search within a specific time window
+   window = (start_time, end_time)
+   results = col.search_temporal(query_vector, time_window=window)
+
 Visual Explorer
 --------------
 

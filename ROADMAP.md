@@ -16,7 +16,7 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 ## Milestone 3: Hybrid Search & Reranking ✅
 - [x] Reranking Hooks, Sparse BM25 support, Hybrid Search (RRF), and Recall/Latency Benchmarking.
 
-## Milestone 4: Advanced Reranking & Matryoshka (v0.4.0) ✅
+## Milestone 4: Advanced Reranking & Matryoshka ✅
 **Goal**: Implement "Shortlist & Rerank" patterns for 2026-grade performance.
 
 - [x] **Matryoshka Truncation**: Native support for truncating MRL-capable embeddings.
@@ -24,31 +24,32 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 - [x] **FlashRank Integration**: CPU-optimized reranking via ONNX for sub-100ms latency.
 - [x] **Late Interaction (ColBERT)**: Supported via `rerankers` integration.
 
-## Milestone 5: Agentic Era & MCP (v0.5.0) ✅
+## Milestone 5: Agentic Era & MCP ✅
 **Goal**: Become the default memory for AI Agents (Claude, GPT-5).
 
 - [x] **MCP Server Native**: Expose Embenx collections as Model Context Protocol (MCP) tools for instant integration with Claude Desktop and other agentic IDEs.
 - [ ] **Agentic Trajectories**: Support for autonomous multi-step search loops where the model refines its own queries.
 - [ ] **Temporal Memory**: Managed `Session` objects with time-based decay for long-term agentic context.
 
-## Milestone 6: Visualizer & DevTools (v0.6.0) ✅
+## Milestone 6: Visualizer & DevTools ✅
 **Goal**: Provide the best developer experience in the ecosystem.
 
 - [x] **Embenx Explorer**: A lightweight, built-in web UI to visualize vector clusters and metadata distributions (built with Streamlit).
 - [ ] **HNSW Graph Visualizer**: Interactive 3D visualization of the HNSW graph traversal during search.
 - [ ] **Export to production**: One-click export from local Embenx collections to production clusters.
 
-## Milestone 7: Advanced World Models (v0.7.0) ✅
+## Milestone 7: Advanced World Models ✅
 - [x] **Trajectory Retrieval**: Search *sequences* of vectors (action/state trajectories) with mean/max pooling.
 - [x] **Retrieval-Augmented KV Caching (RA-KVC)**: Off-path KV storage using `safetensors`.
 - [x] **State Space Hydration**: Prime initial hidden states ($h_0$) of SSMs (Mamba-2) using `StateCollection`.
 
-## Milestone 8: Research-Driven Optimizations (v1.0.0) 🚧
+## Milestone 8: Research-Driven Optimizations (v1.0.0) ✅
 **Goal**: Integrate 2025-2026 SOTA algorithms from ArXiv.
+
 - [x] **ClusterKV (arXiv:2412.03213)**: Implement semantic clustering of KV/Vector pairs for improved throughput.
 - [x] **TurboQuant (arXiv:2504.19874)**: Add 1-bit sign-based quantization for aggressive activation compression.
 - [x] **ESWM (ICLR 2026)**: Neuroscience-inspired spatial cognitive maps for navigation trajectories.
-- [ ] **Echo (arXiv:2502.16090)**: Temporal episodic memory logic for "what happened when" queries.
+- [x] **Echo (arXiv:2502.16090)**: Temporal episodic memory logic for "what happened when" queries.
 
 ---
 
