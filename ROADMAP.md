@@ -16,24 +16,27 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 ## Milestone 3: Hybrid Search & Reranking ✅
 - [x] Reranking Hooks, Sparse BM25 support, Hybrid Search (RRF), and Recall/Latency Benchmarking.
 
-## Milestone 4: Advanced Reranking & Matryoshka (v0.4.0) 🚧
-- [ ] **Matryoshka Truncation**: Native support for truncating MRL-capable embeddings.
-- [ ] **FlashRank Integration**: CPU-optimized reranking via ONNX for sub-100ms latency.
-- [ ] **Late Interaction (ColBERT)**: Support for token-level interaction for state-of-the-art accuracy.
+## Milestone 4: Advanced Reranking & Matryoshka (v0.4.0) ✅
+**Goal**: Implement "Shortlist & Rerank" patterns for 2026-grade performance.
 
-## Milestone 5: Agentic Era & MCP (v0.5.0) 🤖
+- [x] **Matryoshka Truncation**: Native support for truncating MRL-capable embeddings.
+- [x] **Unified Rerank API**: Integrated support for `sentence-transformers` and `rerankers` library.
+- [x] **FlashRank Integration**: CPU-optimized reranking via ONNX for sub-100ms latency.
+- [x] **Late Interaction (ColBERT)**: Supported via `rerankers` integration.
+
+## Milestone 5: Agentic Era & MCP (v0.5.0) ✅
 **Goal**: Become the default memory for AI Agents (Claude, GPT-5).
 
-- [ ] **MCP Server Native**: Expose Embenx collections as Model Context Protocol (MCP) tools for instant integration with Claude Desktop and other agentic IDEs.
+- [x] **MCP Server Native**: Expose Embenx collections as Model Context Protocol (MCP) tools for instant integration with Claude Desktop and other agentic IDEs.
 - [ ] **Agentic Trajectories**: Support for autonomous multi-step search loops where the model refines its own queries.
 - [ ] **Temporal Memory**: Managed `Session` objects with time-based decay for long-term agentic context.
 
-## Milestone 6: Visualizer & DevTools (v0.6.0) ✨
+## Milestone 6: Visualizer & DevTools (v0.6.0) 🚧
 **Goal**: Provide the best developer experience in the ecosystem.
 
 - [ ] **Embenx Explorer**: A lightweight, built-in web UI to visualize vector clusters and metadata distributions (built with Streamlit or FastAPI/React).
 - [ ] **HNSW Graph Visualizer**: Interactive 3D visualization of the HNSW graph traversal during search.
-- [ ] **Export to production**: One-click export from local Embenx collections to production Qdrant/Pinecone/Milvus clusters.
+- [ ] **Export to production**: One-click export from local Embenx collections to production clusters.
 
 ## Milestone 7: Advanced World Models (v0.7.0) 🌌
 - [ ] **Trajectory Retrieval**: Search *sequences* of vectors (action/state trajectories).
@@ -45,5 +48,5 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 ## Strategic Growth Decision Rules (The Path to 5,000 Stars)
 1. **Local-First, Cloud-Optional**: Prioritize the developer's laptop. Zero-setup is our superpower.
 2. **Interoperability is King**: Support every major format (Arrow, Parquet, FAISS, Safetensors) and protocol (MCP).
-3. **Show, Don't Just Tell**: Invest heavily in the Visualizer (Milestone 6) to make vector search "tangible" for new developers.
-4. **Performance for Free**: Use Rust-backed libs (USearch, LanceDB) and ONNX (FlashRank) to ensure Embenx is always the fastest tool in the repo.
+3. **Show, Don't Just Tell**: Invest heavily in the Visualizer (Milestone 6).
+4. **Performance for Free**: Use Rust-backed libs and ONNX to ensure Embenx is always the fastest tool.

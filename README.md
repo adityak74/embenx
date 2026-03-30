@@ -59,10 +59,34 @@ new_col = Collection.from_parquet("my_collection.parquet")
 col.benchmark(indexers=["faiss", "usearch", "hnswlib"])
 ```
 
-## Features
+## Agentic Memory (MCP)
 
+Embenx ships with a built-in **Model Context Protocol (MCP)** server. This allows AI agents (like Claude Desktop) to use Embenx collections as their own long-term memory.
+
+### 1. Start the server
+```bash
+embenx mcp-start
+```
+
+### 2. Configure Claude Desktop
+Add this to your `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "embenx": {
+      "command": "uv",
+      "args": ["--directory", "/path/to/embenx", "run", "embenx", "mcp-start"]
+    }
+  }
+}
+```
+
+## Features
+...
 - **Unified Collection API** — Table-like interface for vectors and metadata.
+- **Agentic Memory (MCP)** — Native Model Context Protocol support for AI agents.
 - **Hybrid Search** — Combine dense vectors with sparse BM25 retrieval using RRF.
+
 - **Recall Evaluation** — Built-in tools to measure ANN accuracy against exact search.
 - **Library-Native Benchmarking** — Compare performance directly from Python code.
 - **Metadata Filtering** — Native 'where' clause support for filtered retrieval.

@@ -225,6 +225,18 @@ def setup(
 
 
 @app.command()
+def mcp_start():
+    """
+    Start the Embenx MCP server for agentic tool-use.
+    """
+    import asyncio
+    from mcp_server import run
+    
+    console.print("[bold green]Starting Embenx MCP Server...[/bold green]")
+    console.print("[cyan]Connect your agent (Claude Desktop, etc.) via stdio.[/cyan]")
+    asyncio.run(run())
+
+@app.command()
 def list_indexers():
     """
     List available indexing libraries for benchmarking.
