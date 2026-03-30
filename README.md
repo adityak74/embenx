@@ -80,6 +80,7 @@ embenx explorer
 
 - **Unified Collection API** — Table-like interface for vectors and metadata.
 - **Agentic Memory (MCP)** — Native Model Context Protocol support for AI agents.
+- **Self-Healing Retrieval** — Integrated feedback loops to automatically improve ranking accuracy.
 - **Temporal Memory (Echo)** — Recency-biased retrieval and time-window filtering (arXiv:2502.16090).
 - **Spatial Memory (ESWM)** — Neuroscience-inspired spatial cognitive maps for navigation (ICLR 2026).
 - **TurboQuant Compression** — 1-bit sign-based quantization for activation tensors (arXiv:2504.19874).

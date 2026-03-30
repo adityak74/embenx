@@ -320,3 +320,26 @@ def test_temporal_collection():
     col_def = TemporalCollection(dimension=4)
     col_def.add_temporal(vectors[:1])
     assert "timestamp" in col_def._metadata[0]
+
+def test_agentic_collection():
+    from core import AgenticCollection
+    col = AgenticCollection(dimension=4)
+    # Give some initial distance
+    vectors = np.array([
+        [1, 0, 0, 0],
+        [0.1, 0.9, 0, 0],
+        [0, 0, 1, 0]
+    ], dtype=np.float32)
+    metadata = [{"id": "a"}, {"id": "b"}, {"id": "c"}]
+    col.add(vectors, metadata)
+    
+    # Initial search for v[0] would return 'a' first.
+    # we give heavy negative feedback to 'a' and positive to 'b'
+    for _ in range(10):
+        col.feedback("a", label="bad")
+        col.feedback("b", label="good")
+    
+    results = col.agentic_search(vectors[0], top_k=2)
+    # 'b' should now be first
+    assert results[0][0]["id"] == "b"
+    assert "feedback_score" in results[0][0]

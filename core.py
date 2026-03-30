@@ -651,3 +651,59 @@ class TemporalCollection(Collection):
             
         temporal_results.sort(key=lambda x: x[1])
         return temporal_results[:top_k]
+
+
+class AgenticCollection(Collection):
+    """
+    Specialized collection for autonomous agent memory.
+    Supports search loops, feedback, and self-healing ranking.
+    """
+
+    def feedback(self, doc_id: str, label: str = "good"):
+        """
+        Provide feedback on a retrieval result. 
+        Adjusts metadata to influence future rankings.
+        """
+        for i, m in enumerate(self._metadata):
+            if m.get("id") == doc_id:
+                if "feedback_score" not in m:
+                    m["feedback_score"] = 0.0
+                
+                if label == "good":
+                    m["feedback_score"] += 0.5 # Stronger boost
+                elif label == "bad":
+                    m["feedback_score"] -= 0.5 # Stronger demote
+                break
+
+    def agentic_search(
+        self,
+        query_vector: np.ndarray,
+        top_k: int = 5,
+        feedback_weight: float = 1.0 # High default for testing
+    ) -> List[Tuple[Dict[str, Any], float]]:
+        """
+        Search with additive self-healing logic using stored feedback scores.
+        """
+        # Initial search
+        results = self.search(query_vector, top_k=top_k * 3)
+        
+        agentic_results = []
+        for meta, dist in results:
+            # We must fetch the latest feedback from self._metadata
+            # because search() returns a snapshot/copy.
+            doc_id = meta.get("id")
+            actual_meta = meta
+            for m in self._metadata:
+                if m.get("id") == doc_id:
+                    actual_meta = m
+                    break
+            
+            fb_score = actual_meta.get("feedback_score", 0.0)
+            
+            # Adjusted distance: positive feedback REDUCES distance (boosts result)
+            # Additive shift ensures even exact matches (dist=0) can be demoted.
+            adjusted_dist = dist - (fb_score * feedback_weight)
+            agentic_results.append((actual_meta, float(adjusted_dist)))
+            
+        agentic_results.sort(key=lambda x: x[1])
+        return agentic_results[:top_k]

@@ -43,13 +43,19 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 - [x] **Retrieval-Augmented KV Caching (RA-KVC)**: Off-path KV storage using `safetensors`.
 - [x] **State Space Hydration**: Prime initial hidden states ($h_0$) of SSMs (Mamba-2) using `StateCollection`.
 
-## Milestone 8: Research-Driven Optimizations (v1.0.0) ✅
+## Milestone 8: Research-Driven Optimizations ✅
 **Goal**: Integrate 2025-2026 SOTA algorithms from ArXiv.
 
 - [x] **ClusterKV (arXiv:2412.03213)**: Implement semantic clustering of KV/Vector pairs for improved throughput.
 - [x] **TurboQuant (arXiv:2504.19874)**: Add 1-bit sign-based quantization for aggressive activation compression.
 - [x] **ESWM (ICLR 2026)**: Neuroscience-inspired spatial cognitive maps for navigation trajectories.
 - [x] **Echo (arXiv:2502.16090)**: Temporal episodic memory logic for "what happened when" queries.
+
+## Milestone 9: Full Agentic MCP Integration ✅
+**Goal**: Universal interoperability for the Agentic Era.
+- [x] **MCP Server Native**: Expose Embenx collections as Model Context Protocol (MCP) tools.
+- [x] **Agentic Trajectories**: Support for autonomous query refinement using `AgenticCollection`.
+- [x] **Self-Healing Retrieval**: Integrated feedback loops to automatically update rankings.
 
 ---
 

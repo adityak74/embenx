@@ -1,53 +1,36 @@
 Usage Guide
 ===========
 
-Embenx provides a high-level Python API and a powerful CLI for vector retrieval and benchmarking.
+Embenx is designed to be simple yet powerful. This guide covers the most common usage patterns.
 
-Python Library (Collection API)
------------------------------
+Core API
+--------
 
-The ``Collection`` class is the primary entry point for using Embenx as a library.
-
-Supported Indexer Types
-^^^^^^^^^^^^^^^^^^^^^^
-
-When initializing a ``Collection``, you can choose from the following ``indexer_type`` values:
-
-* **FAISS Family**: ``faiss`` (Flat), ``faiss-ivf``, ``faiss-hnsw``, ``faiss-sq8``, ``faiss-pq``
-* **Local ANN**: ``annoy``, ``hnswlib``, ``usearch``, ``usearch-f16``, ``usearch-i8``, ``chroma``, ``lance``, ``qdrant``, ``milvus``, ``scann``
-* **Databases**: ``pgvector``, ``duckdb``, ``weaviate``, ``elasticsearch``, ``vespa``
-* **Baselines**: ``simple`` (NumPy brute-force)
+The primary interface is the ``Collection`` class.
 
 .. code-block:: python
 
    from embenx import Collection
    import numpy as np
 
-   # 1. Initialize a collection
-   # indexer_type can be: faiss, faiss-hnsw, faiss-sq8, usearch-f16, etc.
+   # 1. Initialize
    col = Collection(dimension=768, indexer_type="faiss-hnsw")
 
    # 2. Add data
    vectors = np.random.rand(100, 768).astype('float32')
-   metadata = [{"id": i, "category": "news"} for i in range(100)]
+   metadata = [{"id": i, "text": f"Doc {i}"} for i in range(100)]
    col.add(vectors, metadata)
 
-   # 3. Search with filtering
-   results = col.search(
-       query=vectors[0], 
-       top_k=5, 
-       where={"category": "news"}
-   )
+   # 3. Search
+   query_vector = np.random.rand(768).astype('float32')
+   results = col.search(query_vector, top_k=5)
 
-   # 4. Search with custom reranking
-   def my_reranker(query, results):
-       return sorted(results, key=lambda x: x[0]['id'], reverse=True)
+   # 4. Filtered Search
+   results = col.search(query_vector, top_k=5, where={"id": 10})
 
-   results = col.search(vectors[0], reranker=my_reranker)
-
-   # 5. Benchmark multiple indexers on live data
-   # This compares backends directly on your collection's current state
-   col.benchmark(indexers=["faiss", "usearch", "simple"])
+   # 5. Serialization
+   col.to_parquet("my_data.parquet")
+   col2 = Collection.from_parquet("my_data.parquet")
 
    # 6. Evaluate recall and latency
    # Compares an ANN indexer against an exact search baseline
@@ -164,6 +147,27 @@ Embenx supports time-aware retrieval (as described in Echo, arXiv:2502.16090), a
    window = (start_time, end_time)
    results = col.search_temporal(query_vector, time_window=window)
 
+Agentic Memory & Self-Healing
+----------------------------
+
+For autonomous agents, Embenx provides an ``AgenticCollection`` that supports feedback loops to automatically improve retrieval accuracy over time.
+
+.. code-block:: python
+
+   from embenx.core import AgenticCollection
+   
+   col = AgenticCollection(dimension=768)
+   
+   # Perform an agentic search (incorporates previous feedback)
+   results = col.agentic_search(query_vector, top_k=5)
+   
+   # Provide feedback on a result
+   # This will boost 'doc_123' in future searches for similar queries
+   col.feedback(doc_id="doc_123", label="good")
+   
+   # Demote a noise result
+   col.feedback(doc_id="doc_noise", label="bad")
+
 Visual Explorer
 --------------
 
@@ -180,87 +184,17 @@ Embenx supports combining dense vector search with sparse BM25 retrieval.
 
 .. code-block:: python
 
-   # Initialize with both indexers
-   col = Collection(
-       dimension=768, 
-       indexer_type="faiss-hnsw", 
-       sparse_indexer_type="bm25"
-   )
+   # 1. Initialize with sparse indexer
+   col = Collection(dimension=768, sparse_indexer_type="bm25")
 
-   # Add data (ensure metadata has a 'text' field for BM25)
-   col.add(vectors, metadata=[{"text": "content here", "id": 1}])
+   # 2. Add text and vectors
+   col.add(vectors, metadata=[{"text": "Sample content"}])
 
-   # Search using Reciprocal Rank Fusion (RRF)
+   # 3. Hybrid search (uses Reciprocal Rank Fusion)
    results = col.hybrid_search(
-       query_vector=my_vector,
-       query_text="search keywords",
+       query_vector=q_vec,
+       query_text="What is the content?",
        top_k=5,
-       dense_weight=0.7,
-       sparse_weight=0.3
+       dense_weight=0.5,
+       sparse_weight=0.5
    )
-
-Benchmark CLI
--------------
-
-The primary CLI command is ``benchmark``:
-
-.. code-block:: bash
-
-   embenx benchmark --dataset <dataset_name> [options]
-
-Options:
-
-* ``--dataset`` / ``-d``: HuggingFace dataset name or format (csv, json, parquet). You can also pass a local file path directly.
-* ``--max-docs`` / ``-m``: Maximum documents to index.
-* ``--indexers`` / ``-i``: Comma-separated list of indexers to test.
-* ``--model``: LiteLLM model string (e.g., ``ollama/nomic-embed-text``).
-* ``--custom-indexer``: Path to a custom indexer Python script.
-
-Environment Setup
------------------
-
-Check your environment before running:
-
-.. code-block:: bash
-
-   embenx setup --pull
-
-Local Datasets
---------------
-
-Embenx supports local CSV, JSON, Parquet, and NumPy files. You can pass the path directly to the ``--dataset`` flag:
-
-.. code-block:: bash
-
-   # Using a direct path to a Parquet file
-   embenx benchmark --dataset ./my_data.parquet --text-column content
-
-   # Using a direct path to a NumPy file
-   embenx benchmark --dataset ./embeddings.npy
-
-Custom Indexers
----------------
-
-You can create a custom indexer by inheriting from ``BaseIndexer``:
-
-.. code-block:: python
-
-   from embenx import BaseIndexer
-
-   class MyIndexer(BaseIndexer):
-       def build_index(self, embeddings, metadata):
-           # build logic
-           pass
-
-       def search(self, query_embedding, top_k=5):
-           # search logic
-           return []
-
-       def get_size(self):
-           return 0
-
-Run your custom indexer with the ``--custom-indexer`` flag:
-
-.. code-block:: bash
-
-   embenx benchmark --custom-indexer ./my_indexer.py --indexers myindexername
