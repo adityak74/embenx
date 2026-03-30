@@ -54,6 +54,15 @@ When initializing a ``Collection``, you can choose from the following ``indexer_
    metrics = col.evaluate(indexer_type="faiss-hnsw", top_k=10)
    print(f"Recall: {metrics['recall']}, Latency: {metrics['latency_ms']}ms")
 
+Visual Explorer
+--------------
+
+Embenx includes a web-based UI to visualize your collections. It uses PCA or t-SNE to reduce high-dimensional vectors to 2D or 3D clusters.
+
+.. code-block:: bash
+
+   embenx explorer
+
 Hybrid Search (Dense + Sparse)
 ----------------------------
 

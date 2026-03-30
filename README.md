@@ -68,6 +68,14 @@ Embenx ships with a built-in **Model Context Protocol (MCP)** server. This allow
 embenx mcp-start
 ```
 
+## Visual Explorer
+
+Embenx provides a built-in web UI to visualize your vector collections and metadata.
+
+```bash
+embenx explorer
+```
+
 ### 2. Configure Claude Desktop
 Add this to your `claude_desktop_config.json`:
 ```json
@@ -84,6 +92,7 @@ Add this to your `claude_desktop_config.json`:
 ## Features
 ...
 - **Unified Collection API** — Table-like interface for vectors and metadata.
+- **Visual Explorer** — Built-in web UI to visualize vector clusters and metadata.
 - **Agentic Memory (MCP)** — Native Model Context Protocol support for AI agents.
 - **Hybrid Search** — Combine dense vectors with sparse BM25 retrieval using RRF.
 

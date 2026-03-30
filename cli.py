@@ -237,6 +237,23 @@ def mcp_start():
     asyncio.run(run())
 
 @app.command()
+def explorer():
+    """
+    Launch the Embenx Explorer web UI to visualize collections.
+    """
+    import subprocess
+    import sys
+    
+    console.print("[bold green]Launching Embenx Explorer...[/bold green]")
+    try:
+        # Run streamlit as a subprocess
+        subprocess.run(["streamlit", "run", "explorer.py"], check=True)
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Explorer stopped.[/yellow]")
+    except Exception as e:
+        console.print(f"[bold red]Error launching explorer: {e}[/bold red]")
+
+@app.command()
 def list_indexers():
     """
     List available indexing libraries for benchmarking.
