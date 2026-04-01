@@ -10,6 +10,7 @@ from benchmark import (
     get_memory_usage,
     load_custom_indexer,
     run_benchmark,
+    generate_report
 )
 
 
@@ -153,3 +154,42 @@ def test_run_benchmark_with_custom(
 
     run_benchmark("d", "s", "c", 1, ["custom"], "m", console, custom_indexer_script="path.py")
     mock_load_custom.assert_called_once()
+
+def test_generate_report(tmp_path):
+    results = [
+        {
+            "Indexer": "FAISS",
+            "Build Time (s)": "0.1",
+            "Query Time (ms)": "0.5",
+            "Index Size (KB)": "100",
+            "Memory Diff (MB)": "10"
+        }
+    ]
+    report_path = os.path.join(tmp_path, "report.md")
+    path = generate_report(results, "test-ds", output_path=report_path)
+    assert os.path.exists(path)
+    with open(path, "r") as f:
+        content = f.read()
+        assert "FAISS" in content
+        assert "test-ds" in content
+
+def test_grand_benchmark_cli():
+    from cli import app
+    from typer.testing import CliRunner
+    runner = CliRunner()
+    
+    with patch("benchmark.run_benchmark") as mock_run, \
+         patch("data.list_zoo") as mock_list:
+        mock_list.return_value = ["ds1"]
+        # Match expected report generation fields
+        mock_run.return_value = [{
+            "Indexer": "F", 
+            "Query Time (ms)": "1", 
+            "Index Size (KB)": "1",
+            "Build Time (s)": "1",
+            "Memory Diff (MB)": "1"
+        }]
+        
+        result = runner.invoke(app, ["grand-benchmark", "-i", "faiss", "--max-docs", "2"])
+        assert result.exit_code == 0
+        mock_run.assert_called_once()

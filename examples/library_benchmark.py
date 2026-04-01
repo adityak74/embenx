@@ -1,23 +1,30 @@
-from embenx import Collection
-import numpy as np
+from embenx.benchmark import run_benchmark, generate_report
+from rich.console import Console
 
-def run_library_benchmark():
-    print("--- Library-based Benchmarking Example ---")
+def run_report_example():
+    console = Console()
+    print("--- Library-Native Benchmark & Report Example ---")
     
-    # 1. Setup collection with data
-    dim = 64
-    n = 200
-    col = Collection(dimension=dim, indexer_type="faiss")
+    # 1. Run a benchmark on a dummy dataset
+    print("Benchmarking indexers on 'dummy' dataset...")
+    results = run_benchmark(
+        dataset_name="dummy",
+        split="train",
+        text_column="text",
+        max_docs=50,
+        indexer_names=["faiss", "simple"],
+        model_name="ollama/nomic-embed-text",
+        console=console
+    )
     
-    vectors = np.random.rand(n, dim).astype(np.float32)
-    metadata = [{"id": i, "category": "test"} for i in range(n)]
-    
-    print(f"Adding {n} documents to collection...")
-    col.add(vectors, metadata)
-
-    # 2. Trigger benchmark across multiple indexers directly from the collection
-    print("\nComparing FAISS, USearch, and HNSWLib on this data:")
-    col.benchmark(indexers=["faiss", "faiss-hnsw", "usearch", "hnswlib"])
+    # 2. Generate a Markdown technical report
+    if results:
+        report_path = generate_report(results, "Dummy Dataset")
+        print(f"\nTechnical Report generated: {report_path}")
+        
+        with open(report_path, "r") as f:
+            print("\n--- Report Preview ---")
+            print(f.read()[:200] + "...")
 
 if __name__ == "__main__":
-    run_library_benchmark()
+    run_report_example()
