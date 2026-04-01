@@ -757,3 +757,40 @@ class AgenticCollection(Collection):
             
         agentic_results.sort(key=lambda x: x[1])
         return agentic_results[:top_k]
+
+
+class Session:
+    """
+    Managed agentic session with automatic temporal decay and persistence.
+    """
+    def __init__(self, session_id: str, dimension: int, storage_dir: str = ".embenx_sessions"):
+        self.session_id = session_id
+        self.storage_dir = storage_dir
+        self.path = os.path.join(storage_dir, f"{session_id}.parquet")
+        os.makedirs(storage_dir, exist_ok=True)
+        
+        # Initialize with TemporalCollection for time-based features
+        if os.path.exists(self.path):
+            self.collection = TemporalCollection.from_parquet(self.path)
+        else:
+            self.collection = TemporalCollection(name=session_id, dimension=dimension)
+
+    def add_interaction(self, vector: Union[np.ndarray, List[float]], text: str, **metadata):
+        """
+        Add a new interaction to the session memory.
+        """
+        meta = metadata or {}
+        meta["text"] = text
+        self.collection.add_temporal([vector], metadata=[meta])
+        self.collection.to_parquet(self.path)
+
+    def retrieve_context(self, query_vector: np.ndarray, top_k: int = 5, recency_weight: float = 0.4):
+        """
+        Retrieve relevant context from the session with recency bias.
+        """
+        return self.collection.search_temporal(query_vector, top_k=top_k, recency_weight=recency_weight)
+
+    def cleanup(self):
+        """Delete session data."""
+        if os.path.exists(self.path):
+            os.remove(self.path)

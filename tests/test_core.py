@@ -362,3 +362,25 @@ def test_collection_export_invalid():
     col.add(np.eye(4, dtype=np.float32))
     with pytest.raises(ValueError, match="not supported yet"):
         col.export_to_production(backend="invalid", connection_url="http://mock")
+
+def test_session_management(tmp_path):
+    from core import Session
+    import shutil
+    
+    storage = os.path.join(tmp_path, "sessions")
+    sess = Session(session_id="test_agent_1", dimension=4, storage_dir=storage)
+    
+    # 1. Add interaction
+    sess.add_interaction([1, 0, 0, 0], "Hello world", role="user")
+    assert os.path.exists(os.path.join(storage, "test_agent_1.parquet"))
+    
+    # 2. Retrieve
+    res = sess.retrieve_context(np.array([1, 0, 0, 0]))
+    assert len(res) == 1
+    assert res[0][0]["text"] == "Hello world"
+    
+    # 3. Persistence (reload)
+    sess2 = Session(session_id="test_agent_1", dimension=4, storage_dir=storage)
+    assert len(sess2.collection._metadata) == 1
+    
+    sess.cleanup()

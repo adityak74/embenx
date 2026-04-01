@@ -29,7 +29,7 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 
 - [x] **MCP Server Native**: Expose Embenx collections as Model Context Protocol (MCP) tools for instant integration with Claude Desktop and other agentic IDEs.
 - [x] **Agentic Memory loops**: Integrated feedback loops for self-healing ranking.
-- [ ] **Temporal Memory**: Managed `Session` objects with time-based decay for long-term agentic context.
+- [x] **Temporal Memory**: Managed `Session` objects with time-based decay for long-term agentic context.
 
 ## Milestone 6: Visualizer & DevTools ✅
 **Goal**: Provide the best developer experience in the ecosystem.
