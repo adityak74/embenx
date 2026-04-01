@@ -1085,7 +1085,7 @@ wheels = [
 
 [[package]]
 name = "embenx"
-version = "1.1.0"
+version = "1.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "annoy" },
@@ -1100,6 +1100,7 @@ dependencies = [
     { name = "mcp" },
     { name = "networkx", version = "3.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pillow" },
     { name = "plotly" },
     { name = "psutil" },
     { name = "psycopg2-binary" },
@@ -1149,7 +1150,8 @@ requires-dist = [
     { name = "lancedb", specifier = ">=0.2.0" },
     { name = "litellm", specifier = ">=1.0.0" },
     { name = "mcp", specifier = ">=1.26.0" },
-    { name = "networkx", specifier = ">=3.4.2" },
+    { name = "networkx", specifier = ">=3.0" },
+    { name = "pillow", specifier = ">=12.1.1" },
     { name = "plotly", specifier = ">=5.18.0" },
     { name = "psutil", specifier = ">=5.9.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.0" },

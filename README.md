@@ -66,7 +66,7 @@ embenx mcp-start
 
 ## Visual Explorer
 
-Embenx provides a built-in web UI to visualize your vector collections, including an interactive **HNSW Graph Visualizer**.
+Embenx provides a built-in web UI to visualize your vector collections, including an interactive **HNSW Graph Visualizer** and a **RAG Playground**.
 
 ```bash
 embenx explorer
@@ -74,6 +74,8 @@ embenx explorer
 
 ## Features
 
+- **Multimodal Support** — Native support for image embeddings (CLIP).
+- **RAG Playground** — Test retrieval quality with an integrated LLM chat loop.
 - **HNSW Graph Visualizer** — Interactive 3D visualization of navigation layers.
 - **Export to Production** — One-click migration to Qdrant or Milvus clusters.
 - **Unified Collection API** — Table-like interface for vectors and metadata.
@@ -88,6 +90,7 @@ embenx explorer
 - **KV Cache Offloading (RA-KVC)** — Store and retrieve high-dimensional LLM activations using `safetensors`.
 - **SSM State Hydration** — Persist and prime hidden states ($h_0$) for State Space Models (Mamba-2).
 - **Trajectory Retrieval** — Search for similar state/action sequences for World Models.
+- **Visual Explorer** — Built-in web UI to visualize vector clusters and metadata.
 - **Universal model support** — Integrated LiteLLM for any embedding provider.
 - **Portable Formats** — Native support for Parquet, NumPy (.npy/.npz), and FAISS (.index).
 

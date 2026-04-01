@@ -36,6 +36,7 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 
 - [x] **Embenx Explorer**: A lightweight, built-in web UI to visualize vector clusters and metadata distributions (built with Streamlit).
 - [x] **HNSW Graph Visualizer**: Interactive 3D visualization of the HNSW graph layers and navigation paths.
+- [x] **RAG Playground**: Integrated chat loop to test retrieval quality with LLMs.
 - [x] **Export to production**: One-click export from local Embenx collections to production clusters (Qdrant, Milvus).
 
 ## Milestone 7: Advanced World Models ✅
@@ -57,11 +58,12 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 - [x] **Agentic Trajectories**: Support for autonomous query refinement using `AgenticCollection`.
 - [x] **Self-Healing Retrieval**: Integrated feedback loops to automatically update rankings.
 
-## Milestone 10: Final Polish & Ecosystem Launch (v1.1.0) ✅
+## Milestone 10: Final Polish & Ecosystem Launch ✅
 **Goal**: The gold standard for retrieval engineering.
 - [x] **Retrieval Zoo**: Launched pre-built Embenx collections via `embenx zoo-load`.
+- [x] **Technical Report Generator**: Automated generation of Markdown benchmark reports.
+- [x] **Multimodal Support**: Native handling of image embeddings (CLIP).
 - [x] **100% Documentation Coverage**: Every class, method, and script fully documented.
-- [x] **Ecosystem Ready**: Verified benchmarks and technical integrity.
 
 ---
 

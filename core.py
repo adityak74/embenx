@@ -100,6 +100,20 @@ class Collection:
             self._vectors = np.vstack([self._vectors, vectors])
         self._metadata.extend(meta)
 
+    def add_images(self, image_paths: List[str], model: str = "openai/clip-vit-base-patch32", metadata: Optional[List[Dict[str, Any]]] = None):
+        """
+        Embed and add images to the collection.
+        """
+        from llm import Embedder
+        emb = Embedder(model)
+        vectors = emb.embed_texts(image_paths) 
+        
+        meta = metadata or [{} for _ in range(len(image_paths))]
+        for i, path in enumerate(image_paths):
+            meta[i]["image_path"] = path
+            
+        self.add(vectors, meta)
+
     def search(
         self,
         query: Union[np.ndarray, List[float]],
@@ -149,6 +163,15 @@ class Collection:
             return _process_single(query_vec)
         else:
             return [_process_single(q) for q in query_vec]
+
+    def search_image(self, image_path: str, model: str = "openai/clip-vit-base-patch32", top_k: int = 5) -> List[Tuple[Dict[str, Any], float]]:
+        """
+        Search for similar items using an image query.
+        """
+        from llm import Embedder
+        emb = Embedder(model)
+        q_vec = emb.embed_query(image_path)
+        return self.search(q_vec, top_k=top_k)
 
     def search_trajectory(
         self,

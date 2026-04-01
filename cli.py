@@ -22,7 +22,7 @@ def info():
     """
     console.print(
         Panel.reveal(
-            "[bold rocket] Embenx v0.0.2[/bold rocket]\n[dim]The Agentic Memory Layer[/dim]",
+            "[bold rocket] Embenx v1.2.0[/bold rocket]\n[dim]The Agentic Memory Layer[/dim]",
             title="System Info",
             expand=False,
         )
@@ -113,26 +113,65 @@ def benchmark(
     indexers: str = typer.Option("faiss,simple", "--indexers", "-i", help="Comma-separated list of indexers."),
     top_k: int = typer.Option(5, help="Number of neighbors to search."),
     custom_indexer: Optional[str] = typer.Option(None, "--custom-indexer", help="Path to custom indexer script."),
+    report: bool = typer.Option(False, help="Generate a Markdown report."),
+    model: str = typer.Option("ollama/nomic-embed-text", help="Embedding model."),
 ):
     """
     Run Embenx benchmarks on local or remote data.
     """
-    from benchmark import run_benchmark
+    from benchmark import run_benchmark, generate_report
 
     indexer_list = indexers.split(",") if indexers != "all" else None
 
     console.print("Run Embenx benchmarks")
     console.print("[bold green]Starting Embenx Benchmark...[/bold green]")
-    run_benchmark(
-        dataset_name=dataset if not path else path,
-        subset=subset,
-        split=split,
-        text_col=text_col,
-        max_docs=max_docs,
-        indexers=indexer_list,
-        top_k=top_k,
+    
+    # Matching original signature: run_benchmark(dataset_name, split, text_column, max_docs, indexer_names, model_name, console, ...)
+    results = run_benchmark(
+        dataset if not path else path,
+        split,
+        text_col,
+        max_docs,
+        indexer_list,
+        model,
+        console,
         custom_indexer_script=custom_indexer,
+        subset=subset
     )
+    
+    if report and results:
+        path = generate_report(results, dataset if not path else path)
+        console.print(f"[bold green]✓ Report generated: {path}[/bold green]")
+
+
+@app.command()
+def grand_benchmark(
+    indexers: str = typer.Option("faiss,simple", "--indexers", "-i", help="Indexers to test."),
+    max_docs: int = typer.Option(100, "--max-docs", "-n", help="Docs per dataset."),
+    model: str = typer.Option("ollama/nomic-embed-text", help="Embedding model."),
+):
+    """
+    Run benchmarks across all Retrieval Zoo datasets and generate a Grand Report.
+    """
+    from benchmark import run_benchmark, generate_report
+    from data import list_zoo
+    
+    datasets = list_zoo()
+    all_results = []
+    
+    indexer_list = indexers.split(",") if indexers != "all" else None
+    
+    for ds in datasets:
+        console.print(f"\n[bold magenta]>>> Benchmarking Zoo Dataset: {ds}[/bold magenta]")
+        res = run_benchmark(ds, "train", "text", max_docs, indexer_list, model, console)
+        if res:
+            for r in res:
+                r["Dataset"] = ds
+            all_results.extend(res)
+            
+    if all_results:
+        path = generate_report(all_results, " Retrieval Zoo (Grand)")
+        console.print(f"\n[bold green]✓ Grand Technical Report generated: {path}[/bold green]")
 
 
 @app.command()
@@ -257,7 +296,6 @@ def check():
     console.print("[bold cyan]Dependency Check:[/bold cyan]")
     for name in indexer_map.keys():
         try:
-            # Simple check for top-level libraries
             if name == "faiss": import faiss
             elif name == "usearch": import usearch
             console.print(f" - {name}: [green]Installed[/green]")

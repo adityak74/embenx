@@ -9,6 +9,7 @@ import glob
 import os
 import networkx as nx
 from core import Collection
+import litellm
 
 st.set_page_config(page_title="Embenx Explorer 🚀", layout="wide")
 
@@ -39,7 +40,7 @@ df, vectors = load_collection_data(selected_col_name)
 st.sidebar.write(f"**Size:** {len(df)} documents")
 st.sidebar.write(f"**Dimension:** {vectors.shape[1]}")
 
-tabs = st.tabs(["Vector Clusters", "Metadata Inspector", "HNSW Visualizer 🕸️", "Interactive Search"])
+tabs = st.tabs(["Vector Clusters", "Metadata Inspector", "HNSW Visualizer 🕸️", "RAG Playground 💬", "Interactive Search"])
 
 # --- Tab 1: Vector Clusters ---
 with tabs[0]:
@@ -88,27 +89,22 @@ with tabs[2]:
     Nodes are assigned to layers (Level 0 being the most dense).
     """)
     
-    # Take a subset for performance
     max_nodes = st.slider("Max Nodes to Visualize", 50, 500, 100)
     subset_indices = np.random.choice(len(vectors), min(len(vectors), max_nodes), replace=False)
     subset_vecs = vectors[subset_indices]
     
-    # 3D PCA for node positions
     pca = PCA(n_components=3)
     coords_3d = pca.fit_transform(subset_vecs)
     
-    # Assign layers
     layers = 3
-    layer_map = [] # list of (node_idx, layer_id)
+    layer_map = []
     for i in range(len(subset_indices)):
-        # Higher layers are exponentially rarer
         r = np.random.random()
         if r < 0.1: l = 2
         elif r < 0.3: l = 1
         else: l = 0
         layer_map.append(l)
     
-    # Build Edges (KNN within and across layers)
     edges = []
     from sklearn.neighbors import NearestNeighbors
     nn = NearestNeighbors(n_neighbors=3).fit(coords_3d)
@@ -119,69 +115,66 @@ with tabs[2]:
             if i != neighbor_idx:
                 edges.append((i, neighbor_idx))
 
-    # Plotly 3D Graph
-    edge_x = []
-    edge_y = []
-    edge_z = []
+    edge_x, edge_y, edge_z = [], [], []
     for edge in edges:
         x0, y0, z0 = coords_3d[edge[0]]
         x1, y1, z1 = coords_3d[edge[1]]
-        # Offset z by layer height
         z0 += layer_map[edge[0]] * 5
         z1 += layer_map[edge[1]] * 5
-        edge_x.extend([x0, x1, None])
-        edge_y.extend([y0, y1, None])
-        edge_z.extend([z0, z1, None])
+        edge_x.extend([x0, x1, None]); edge_y.extend([y0, y1, None]); edge_z.extend([z0, z1, None])
 
-    edge_trace = go.Scatter3d(
-        x=edge_x, y=edge_y, z=edge_z,
-        line=go.scatter3d.Line(width=1, color='#888'),
-        hoverinfo='none',
-        mode='lines'
-    )
-
-    node_x = []
-    node_y = []
-    node_z = []
+    edge_trace = go.Scatter3d(x=edge_x, y=edge_y, z=edge_z, line=dict(width=1, color='#888'), hoverinfo='none', mode='lines')
+    node_x, node_y, node_z = [], [], []
     for i in range(len(subset_indices)):
         x, y, z = coords_3d[i]
-        node_x.append(x)
-        node_y.append(y)
-        node_z.append(z + layer_map[i] * 5)
+        node_x.append(x); node_y.append(y); node_z.append(z + layer_map[i] * 5)
 
-    node_trace = go.Scatter3d(
-        x=node_x, y=node_y, z=node_z,
-        mode='markers',
-        hoverinfo='text',
-        marker=dict(
-            showscale=True,
-            colorscale='Viridis',
-            color=layer_map,
-            size=5,
-            colorbar=dict(title='HNSW Layer'),
-            line_width=2
-        )
-    )
-
-    fig_hnsw = go.Figure(data=[edge_trace, node_trace],
-                 layout=go.Layout(
-                    title='HNSW Multi-Layer Navigation Graph',
-                    showlegend=False,
-                    scene=dict(
-                        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                        zaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                    ),
-                    margin=dict(b=0, l=0, r=0, t=40)
-                ))
-    
+    node_trace = go.Scatter3d(x=node_x, y=node_y, z=node_z, mode='markers', marker=dict(showscale=True, colorscale='Viridis', color=layer_map, size=5))
+    fig_hnsw = go.Figure(data=[edge_trace, node_trace], layout=go.Layout(title='HNSW Multi-Layer Navigation Graph', scene=dict(xaxis=dict(showticklabels=False), yaxis=dict(showticklabels=False), zaxis=dict(showticklabels=False))))
     st.plotly_chart(fig_hnsw, use_container_width=True)
 
-# --- Tab 4: Interactive Search ---
+# --- Tab 4: RAG Playground ---
 with tabs[3]:
+    st.header("RAG Playground 💬")
+    st.markdown("Test your retrieval quality with an LLM chat loop.")
+    
+    rag_model = st.text_input("LLM Model (LiteLLM format)", value="ollama/llama3")
+    rag_query = st.text_area("Ask a question about this collection")
+    
+    if st.button("Generate RAG Response"):
+        if not rag_query:
+            st.warning("Please enter a question.")
+        else:
+            with st.spinner("Retrieving context and generating answer..."):
+                from llm import Embedder
+                try:
+                    # 1. Retrieval
+                    emb = Embedder("ollama/nomic-embed-text")
+                    q_vec = emb.embed_query(rag_query)
+                    col = Collection.from_parquet(f"{selected_col_name}.parquet")
+                    results = col.search(q_vec, top_k=3)
+                    
+                    context = "\n".join([f"Context: {r[0].get('text', str(r[0]))}" for r in results])
+                    
+                    # 2. RAG Prompt
+                    prompt = f"Use the following context to answer the question.\n\nContext:\n{context}\n\nQuestion: {rag_query}\n\nAnswer:"
+                    
+                    response = litellm.completion(model=rag_model, messages=[{"role": "user", "content": prompt}])
+                    
+                    st.subheader("Answer")
+                    st.write(response.choices[0].message.content)
+                    
+                    with st.expander("Show Retrieved Context"):
+                        st.text(context)
+                        
+                except Exception as e:
+                    st.error(f"RAG failed: {e}")
+
+# --- Tab 5: Interactive Search ---
+with tabs[4]:
     st.header("Interactive Search")
-    query_text = st.text_input("Enter a search query")
-    top_k = st.slider("Top K", 1, 20, 5)
+    query_text = st.text_input("Enter a search query", key="search_q")
+    top_k = st.slider("Top K", 1, 20, 5, key="search_k")
 
     if query_text:
         with st.spinner("Searching..."):
@@ -189,7 +182,6 @@ with tabs[3]:
             try:
                 emb = Embedder("ollama/nomic-embed-text")
                 q_vec = emb.embed_query(query_text)
-                
                 col = Collection.from_parquet(f"{selected_col_name}.parquet")
                 results = col.search(q_vec, top_k=top_k)
                 
