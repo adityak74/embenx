@@ -343,3 +343,22 @@ def test_agentic_collection():
     # 'b' should now be first
     assert results[0][0]["id"] == "b"
     assert "feedback_score" in results[0][0]
+
+def test_collection_export_qdrant():
+    from core import Collection
+    from unittest.mock import MagicMock, patch
+    
+    col = Collection(dimension=4)
+    col.add(np.eye(4, dtype=np.float32))
+    
+    with patch("qdrant_client.QdrantClient") as mock_client_cls:
+        mock_client = mock_client_cls.return_value
+        col.export_to_production(backend="qdrant", connection_url="http://mock")
+        mock_client.recreate_collection.assert_called_once()
+        mock_client.upload_collection.assert_called_once()
+
+def test_collection_export_invalid():
+    col = Collection(dimension=4)
+    col.add(np.eye(4, dtype=np.float32))
+    with pytest.raises(ValueError, match="not supported yet"):
+        col.export_to_production(backend="invalid", connection_url="http://mock")

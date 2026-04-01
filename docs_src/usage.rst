@@ -32,6 +32,21 @@ The primary interface is the ``Collection`` class.
    col.to_parquet("my_data.parquet")
    col2 = Collection.from_parquet("my_data.parquet")
 
+Export to Production
+--------------------
+
+Embenx allows you to export your local collection directly to a production-grade vector database like Qdrant or Milvus.
+
+.. code-block:: python
+
+   # Export to a local Qdrant instance
+   col.export_to_production(backend="qdrant", connection_url="http://localhost:6333")
+   
+   # Export to a Milvus cluster
+   col.export_to_production(backend="milvus", connection_url="http://localhost:19530")
+
+.. 
+
    # 6. Evaluate recall and latency
    # Compares an ANN indexer against an exact search baseline
    metrics = col.evaluate(indexer_type="faiss-hnsw", top_k=10)

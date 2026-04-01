@@ -51,12 +51,8 @@ results = col.search(
     where={"category": "AI"}
 )
 
-# 4. Save/Load
-col.to_parquet("my_collection.parquet")
-new_col = Collection.from_parquet("my_collection.parquet")
-
-# 5. Benchmark multiple indexers on your data
-col.benchmark(indexers=["faiss", "usearch", "hnswlib"])
+# 4. Export to production
+col.export_to_production(backend="qdrant", connection_url="http://localhost:6333")
 ```
 
 ## Agentic Memory (MCP)
@@ -70,7 +66,7 @@ embenx mcp-start
 
 ## Visual Explorer
 
-Embenx provides a built-in web UI to visualize your vector collections and metadata.
+Embenx provides a built-in web UI to visualize your vector collections, including an interactive **HNSW Graph Visualizer**.
 
 ```bash
 embenx explorer
@@ -78,6 +74,8 @@ embenx explorer
 
 ## Features
 
+- **HNSW Graph Visualizer** — Interactive 3D visualization of navigation layers.
+- **Export to Production** — One-click migration to Qdrant or Milvus clusters.
 - **Unified Collection API** — Table-like interface for vectors and metadata.
 - **Retrieval Zoo** — Instant access to pre-indexed collections (SQuAD, MS-MARCO, etc.).
 - **Agentic Memory (MCP)** — Native Model Context Protocol support for AI agents.
@@ -90,7 +88,6 @@ embenx explorer
 - **KV Cache Offloading (RA-KVC)** — Store and retrieve high-dimensional LLM activations using `safetensors`.
 - **SSM State Hydration** — Persist and prime hidden states ($h_0$) for State Space Models (Mamba-2).
 - **Trajectory Retrieval** — Search for similar state/action sequences for World Models.
-- **Visual Explorer** — Built-in web UI to visualize vector clusters and metadata.
 - **Universal model support** — Integrated LiteLLM for any embedding provider.
 - **Portable Formats** — Native support for Parquet, NumPy (.npy/.npz), and FAISS (.index).
 

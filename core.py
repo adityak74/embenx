@@ -329,6 +329,56 @@ class Collection:
             "samples": n_samples,
         }
 
+    def export_to_production(self, backend: str, connection_url: str, collection_name: Optional[str] = None):
+        """
+        One-click export from local Embenx collection to production clusters.
+        Supported backends: 'qdrant', 'milvus'.
+        """
+        if self._vectors is None:
+            raise RuntimeError("Collection is empty. Add data before exporting.")
+            
+        name = collection_name or self.name
+        
+        if backend.lower() == "qdrant":
+            from qdrant_client import QdrantClient
+            from qdrant_client.http import models
+            
+            client = QdrantClient(url=connection_url)
+            client.recreate_collection(
+                collection_name=name,
+                vectors_config=models.VectorParams(size=self.dimension, distance=models.Distance.COSINE),
+            )
+            
+            client.upload_collection(
+                collection_name=name,
+                vectors=self._vectors,
+                payload=self._metadata,
+                ids=None
+            )
+            print(f"Successfully exported {len(self._vectors)} vectors to Qdrant at {connection_url}")
+
+        elif backend.lower() == "milvus":
+            from pymilvus import connections, Collection as MilvusCollection, FieldSchema, CollectionSchema, DataType
+            
+            connections.connect(alias="default", uri=connection_url)
+            
+            fields = [
+                FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
+                FieldSchema(name="vector", dtype=DataType.FLOAT_VECTOR, dim=self.dimension)
+            ]
+            schema = CollectionSchema(fields, f"Embenx export of {name}")
+            mc = MilvusCollection(name, schema)
+            
+            # Milvus usually needs flat list for insert
+            entities = [
+                self._vectors.tolist()
+            ]
+            mc.insert(entities)
+            mc.flush()
+            print(f"Successfully exported {len(self._vectors)} vectors to Milvus at {connection_url}")
+        else:
+            raise ValueError(f"Export to backend '{backend}' not supported yet.")
+
     def _apply_filter(self, results: List[Tuple[Dict[str, Any], float]], where: Dict[str, Any]):
         filtered = []
         for meta, dist in results:

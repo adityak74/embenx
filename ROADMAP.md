@@ -35,8 +35,8 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 **Goal**: Provide the best developer experience in the ecosystem.
 
 - [x] **Embenx Explorer**: A lightweight, built-in web UI to visualize vector clusters and metadata distributions (built with Streamlit).
-- [ ] **HNSW Graph Visualizer**: Interactive 3D visualization of the HNSW graph traversal during search.
-- [ ] **Export to production**: One-click export from local Embenx collections to production clusters.
+- [x] **HNSW Graph Visualizer**: Interactive 3D visualization of the HNSW graph layers and navigation paths.
+- [x] **Export to production**: One-click export from local Embenx collections to production clusters (Qdrant, Milvus).
 
 ## Milestone 7: Advanced World Models ✅
 - [x] **Trajectory Retrieval**: Search *sequences* of vectors (action/state trajectories) with mean/max pooling.
