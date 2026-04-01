@@ -11,6 +11,8 @@ Embenx is a high-performance Python library designed for the 2026 AI ecosystem. 
 
    usage
    cli
+   visual
+   advanced
    api
    contributing
 
@@ -18,11 +20,10 @@ Key Capabilities
 ----------------
 
 * **Unified Collection API**: A table-like interface for managing vectors and metadata seamlessly.
-* **15+ Vector Backends**: Support for FAISS, ScaNN, USearch, pgvector, LanceDB, Milvus, Qdrant, and more.
 * **Agentic Memory (MCP)**: Built-in Model Context Protocol server for instant integration with Claude, GPT-5, and autonomous agents.
-* **Advanced Retrieval**: Native support for Matryoshka embeddings (dimension truncation), RRF-based Hybrid Search, and Cross-Encoder reranking.
+* **Advanced Visuals**: Built-in 3D HNSW Graph Visualizer, RAG Playground, and Embenx Explorer.
 * **Research-Driven Optimizations**: Implementation of state-of-the-art algorithms like ClusterKV, TurboQuant (1-bit quantization), and Echo (Temporal Memory).
-* **Visual & DevTools**: Built-in 3D HNSW Graph Visualizer, RAG Playground, and one-click production export.
+* **15+ Vector Backends**: Support for FAISS, ScaNN, USearch, pgvector, LanceDB, Milvus, Qdrant, and more.
 * **Multimodal Support**: Native handling of image embeddings (CLIP) and cross-modal retrieval.
 
 Quick Start
