@@ -53,28 +53,37 @@ with tabs[0]:
 
     @st.cache_data
     def reduce_dims(vectors, method, dims):
+        if len(vectors) < dims:
+            return None
+            
         if method == "PCA":
             reducer = PCA(n_components=dims)
         else:
-            reducer = TSNE(n_components=dims, random_state=42)
+            # t-SNE needs at least dims + 1 samples and perplexity check
+            if len(vectors) <= dims:
+                return None
+            reducer = TSNE(n_components=dims, random_state=42, perplexity=min(30, len(vectors) - 1))
         return reducer.fit_transform(vectors)
 
     reduced_vectors = reduce_dims(vectors, method, dims)
 
-    plot_df = df.copy()
-    if dims == 2:
-        plot_df['x'] = reduced_vectors[:, 0]
-        plot_df['y'] = reduced_vectors[:, 1]
-        fig = px.scatter(plot_df, x='x', y='y', hover_data=df.columns.drop('vector'), 
-                         title=f"{method} 2D Visualization")
-    else:
-        plot_df['x'] = reduced_vectors[:, 0]
-        plot_df['y'] = reduced_vectors[:, 1]
-        plot_df['z'] = reduced_vectors[:, 2]
-        fig = px.scatter_3d(plot_df, x='x', y='y', z='z', hover_data=df.columns.drop('vector'),
-                            title=f"{method} 3D Visualization")
+    if reduced_vectors is not None:
+        plot_df = df.copy()
+        if dims == 2:
+            plot_df['x'] = reduced_vectors[:, 0]
+            plot_df['y'] = reduced_vectors[:, 1]
+            fig = px.scatter(plot_df, x='x', y='y', hover_data=df.columns.drop('vector'), 
+                             title=f"{method} 2D Visualization")
+        else:
+            plot_df['x'] = reduced_vectors[:, 0]
+            plot_df['y'] = reduced_vectors[:, 1]
+            plot_df['z'] = reduced_vectors[:, 2]
+            fig = px.scatter_3d(plot_df, x='x', y='y', z='z', hover_data=df.columns.drop('vector'),
+                                title=f"{method} 3D Visualization")
 
-    st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning(f"Not enough data points to perform {method} {dims}D reduction. Need at least {dims + 1} samples.")
 
 # --- Tab 2: Metadata Inspector ---
 with tabs[1]:
@@ -93,45 +102,48 @@ with tabs[2]:
     subset_indices = np.random.choice(len(vectors), min(len(vectors), max_nodes), replace=False)
     subset_vecs = vectors[subset_indices]
     
-    pca = PCA(n_components=3)
-    coords_3d = pca.fit_transform(subset_vecs)
-    
-    layers = 3
-    layer_map = []
-    for i in range(len(subset_indices)):
-        r = np.random.random()
-        if r < 0.1: l = 2
-        elif r < 0.3: l = 1
-        else: l = 0
-        layer_map.append(l)
-    
-    edges = []
-    from sklearn.neighbors import NearestNeighbors
-    nn = NearestNeighbors(n_neighbors=3).fit(coords_3d)
-    distances, indices = nn.kneighbors(coords_3d)
-    
-    for i in range(len(subset_indices)):
-        for neighbor_idx in indices[i]:
-            if i != neighbor_idx:
-                edges.append((i, neighbor_idx))
+    if len(subset_vecs) >= 3:
+        pca = PCA(n_components=3)
+        coords_3d = pca.fit_transform(subset_vecs)
+        
+        layers = 3
+        layer_map = []
+        for i in range(len(subset_indices)):
+            r = np.random.random()
+            if r < 0.1: l = 2
+            elif r < 0.3: l = 1
+            else: l = 0
+            layer_map.append(l)
+        
+        edges = []
+        from sklearn.neighbors import NearestNeighbors
+        nn = NearestNeighbors(n_neighbors=min(3, len(subset_vecs)-1)).fit(coords_3d)
+        distances, indices = nn.kneighbors(coords_3d)
+        
+        for i in range(len(subset_indices)):
+            for neighbor_idx in indices[i]:
+                if i != neighbor_idx:
+                    edges.append((i, neighbor_idx))
 
-    edge_x, edge_y, edge_z = [], [], []
-    for edge in edges:
-        x0, y0, z0 = coords_3d[edge[0]]
-        x1, y1, z1 = coords_3d[edge[1]]
-        z0 += layer_map[edge[0]] * 5
-        z1 += layer_map[edge[1]] * 5
-        edge_x.extend([x0, x1, None]); edge_y.extend([y0, y1, None]); edge_z.extend([z0, z1, None])
+        edge_x, edge_y, edge_z = [], [], []
+        for edge in edges:
+            x0, y0, z0 = coords_3d[edge[0]]
+            x1, y1, z1 = coords_3d[edge[1]]
+            z0 += layer_map[edge[0]] * 5
+            z1 += layer_map[edge[1]] * 5
+            edge_x.extend([x0, x1, None]); edge_y.extend([y0, y1, None]); edge_z.extend([z0, z1, None])
 
-    edge_trace = go.Scatter3d(x=edge_x, y=edge_y, z=edge_z, line=dict(width=1, color='#888'), hoverinfo='none', mode='lines')
-    node_x, node_y, node_z = [], [], []
-    for i in range(len(subset_indices)):
-        x, y, z = coords_3d[i]
-        node_x.append(x); node_y.append(y); node_z.append(z + layer_map[i] * 5)
+        edge_trace = go.Scatter3d(x=edge_x, y=edge_y, z=edge_z, line=dict(width=1, color='#888'), hoverinfo='none', mode='lines')
+        node_x, node_y, node_z = [], [], []
+        for i in range(len(subset_indices)):
+            x, y, z = coords_3d[i]
+            node_x.append(x); node_y.append(y); node_z.append(z + layer_map[i] * 5)
 
-    node_trace = go.Scatter3d(x=node_x, y=node_y, z=node_z, mode='markers', marker=dict(showscale=True, colorscale='Viridis', color=layer_map, size=5))
-    fig_hnsw = go.Figure(data=[edge_trace, node_trace], layout=go.Layout(title='HNSW Multi-Layer Navigation Graph', scene=dict(xaxis=dict(showticklabels=False), yaxis=dict(showticklabels=False), zaxis=dict(showticklabels=False))))
-    st.plotly_chart(fig_hnsw, use_container_width=True)
+        node_trace = go.Scatter3d(x=node_x, y=node_y, z=node_z, mode='markers', marker=dict(showscale=True, colorscale='Viridis', color=layer_map, size=5))
+        fig_hnsw = go.Figure(data=[edge_trace, node_trace], layout=go.Layout(title='HNSW Multi-Layer Navigation Graph', scene=dict(xaxis=dict(showticklabels=False), yaxis=dict(showticklabels=False), zaxis=dict(showticklabels=False))))
+        st.plotly_chart(fig_hnsw, use_container_width=True)
+    else:
+        st.warning("Not enough data points to visualize HNSW graph. Add more vectors.")
 
 # --- Tab 4: RAG Playground ---
 with tabs[3]:
