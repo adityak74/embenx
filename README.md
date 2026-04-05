@@ -79,6 +79,24 @@ Embenx provides a built-in web UI to visualize your vector collections, includin
 embenx explorer
 ```
 
+## Synthetic Data Generation 🧪
+
+Generate high-quality query-document pairs to train or evaluate your retrieval pipelines. Embenx supports **LiteLLM** (for 100+ providers like OpenAI, Anthropic, Gemini) and local **Ollama** models.
+
+```python
+from embenx import Collection
+
+col = Collection.load("my_collection")
+
+# Generate 2 synthetic queries for each of the first 100 documents
+results = col.generate_synthetic_queries(
+    n_queries_per_doc=2,
+    num_docs=100,
+    model="gpt-4o-mini",  # Or "ollama/llama3"
+    output_path="eval_data.jsonl"
+)
+```
+
 ## Features
 
 - **Synthetic Data Generation** — Create high-quality query-document pairs using LLMs for training and evaluation.
