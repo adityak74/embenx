@@ -1,7 +1,7 @@
 [project]
 name = "embenx"
 version = "1.4.0"
-description = "Universal embedding retrieval toolkit & benchmark. Search, filter, and rerank across 15+ vector backends with a unified Python API and CLI."
+description = "The Agentic Memory Layer & Universal Retrieval Toolkit. Synthetic data generation, 15+ vector backends, hybrid search, and MCP native memory for AI agents."
 authors = [{ name = "adityak74", email = "adityakarnam@gmail.com" }]
 license = { text = "MIT" }
 readme = "README.md"

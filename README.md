@@ -3,8 +3,8 @@
 <h1>Embenx 🚀</h1>
 
 <p>
-  <strong>Universal embedding retrieval toolkit & benchmark.</strong><br/>
-  Search, filter, and rerank across 15+ vector backends (FAISS, ScaNN, pgvector, etc.) with a unified Python API and CLI.
+  <strong>The Agentic Memory Layer & Universal Retrieval Toolkit.</strong><br/>
+  Synthetic data generation, 15+ vector backends, hybrid search, and MCP native memory for AI agents.
 </p>
 
 <p>
