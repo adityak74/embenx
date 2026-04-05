@@ -1,7 +1,7 @@
-from typing import List, Optional
 import base64
 import os
-from io import BytesIO
+from typing import List, Optional
+
 import litellm
 
 try:
@@ -74,3 +74,27 @@ class Embedder:
     def embed_query(self, query: str) -> List[float]:
         embs = self.embed_texts([query])
         return embs[0] if embs else []
+
+class Generator:
+    def __init__(self, model_name: str = "gpt-4o-mini", api_base: Optional[str] = None, **kwargs):
+        self.model_name = model_name
+        self.api_base = api_base
+        self.extra_kwargs = kwargs
+
+    def generate(self, prompt: str) -> str:
+        """
+        Generate text using LiteLLM.
+        """
+        try:
+            response = litellm.completion(
+                model=self.model_name,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.7,
+                api_base=self.api_base,
+                **self.extra_kwargs
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"Error generating text for {self.model_name}: {e}")
+            return ""
+

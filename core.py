@@ -1,16 +1,15 @@
 import os
-import json
 import time
-from typing import Any, Dict, List, Optional, Union, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 
-from indexers import get_indexer_map, BaseIndexer
+from indexers import BaseIndexer, get_indexer_map
 
 try:
-    from safetensors.numpy import save_file, load_file
+    from safetensors.numpy import load_file, save_file
 except ImportError:
     save_file = load_file = None
 
@@ -259,9 +258,10 @@ class Collection:
         if self._vectors is None:
             raise RuntimeError("Collection is empty. Add data before benchmarking.")
 
+        from rich.console import Console
+
         from benchmark import benchmark_single_indexer, display_results
         from indexers import get_indexer_map
-        from rich.console import Console
 
         console = Console()
         indexer_map = get_indexer_map()
@@ -300,8 +300,9 @@ class Collection:
         if self._vectors is None:
             raise RuntimeError("Collection is empty. Add data before evaluating.")
 
-        from indexers.simple_indexer import SimpleIndexer
         import time
+
+        from indexers.simple_indexer import SimpleIndexer
 
         # 1. Exact Search Baseline
         exact = SimpleIndexer(self.dimension)
@@ -381,7 +382,8 @@ class Collection:
             print(f"Successfully exported {len(self._vectors)} vectors to Qdrant at {connection_url}")
 
         elif backend.lower() == "milvus":
-            from pymilvus import connections, Collection as MilvusCollection, FieldSchema, CollectionSchema, DataType
+            from pymilvus import Collection as MilvusCollection
+            from pymilvus import CollectionSchema, DataType, FieldSchema, connections
             
             connections.connect(alias="default", uri=connection_url)
             
@@ -436,6 +438,71 @@ class Collection:
         col = cls(**kwargs)
         col.add(vectors, metadata)
         return col
+
+    def generate_synthetic_queries(
+        self,
+        text_key: str = "text",
+        n_queries_per_doc: int = 1,
+        num_docs: int = 100,
+        model: str = "gpt-4o-mini",
+        custom_prompt: Optional[str] = None,
+        output_path: Optional[str] = None,
+        api_base: Optional[str] = None,
+        **llm_kwargs,
+    ) -> List[Dict[str, Any]]:
+        """
+        Generate synthetic search queries for documents in the collection using an LLM.
+        Supports local Ollama/vLLM via api_base and llm_kwargs.
+        """
+        from llm import Generator
+        import random
+
+        generator = Generator(model_name=model, api_base=api_base, **llm_kwargs)
+        
+        valid_docs = [m for m in self._metadata if m.get(text_key)]
+        if not valid_docs:
+            return []
+            
+        sample_size = min(num_docs, len(valid_docs))
+        sampled_docs = random.sample(valid_docs, sample_size)
+        
+        results = []
+        for i, doc in enumerate(sampled_docs):
+            text = doc[text_key]
+            if custom_prompt:
+                prompt = custom_prompt.format(text=text, n=n_queries_per_doc)
+            else:
+                prompt = (
+                    f"Given the following document text, generate {n_queries_per_doc} "
+                    f"diverse and realistic search queries that a user might type to find this document. "
+                    f"Return ONLY the queries, one per line, without numbering or bullets.\n\n"
+                    f"Document: {text}"
+                )
+                
+            response = generator.generate(prompt)
+            if not response:
+                continue
+                
+            lines = [q.lstrip("- *1234567890.\t").strip() for q in response.split("\n") if q.strip()]
+            queries = [q for q in lines if q]
+            
+            for q in queries[:n_queries_per_doc]:
+                results.append({
+                    "query": q,
+                    "doc_id": doc.get("id"),
+                    "doc_text": text
+                })
+                
+        if output_path and results:
+            df = pd.DataFrame(results)
+            if output_path.endswith(".parquet"):
+                df.to_parquet(output_path)
+            elif output_path.endswith(".jsonl"):
+                df.to_json(output_path, orient="records", lines=True)
+            elif output_path.endswith(".csv"):
+                df.to_csv(output_path, index=False)
+                
+        return results
 
     def to_parquet(self, path: str, vector_col: str = "vector"):
         """Save the collection to a Parquet file."""
@@ -691,12 +758,14 @@ class TemporalCollection(Collection):
         top_k: int = 5,
         recency_weight: float = 0.5,
         time_window: Optional[Tuple[float, float]] = None,
+        where: Optional[Dict[str, Any]] = None,
     ) -> List[Tuple[Dict[str, Any], float]]:
         """
         Temporal-aware search that ranks results by similarity and recency.
         """
         # 1. Semantic search
-        results = self.search(query_vector, top_k=top_k * 5)
+        # Pass the where filter down to the base search if supported or apply here
+        results = self.search(query_vector, top_k=top_k * 5, where=where)
         
         current_time = time.time()
         temporal_results = []

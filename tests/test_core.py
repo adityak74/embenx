@@ -1,8 +1,10 @@
 import os
+
 import numpy as np
 import pytest
-import pandas as pd
+
 from core import Collection
+
 
 def test_collection_init():
     col = Collection(name="test", dimension=64, indexer_type="faiss")
@@ -171,8 +173,9 @@ def test_collection_errors():
         Collection(dimension=4, indexer_type="invalid")
 
 def test_cache_collection(tmp_path):
-    from core import CacheCollection
     import shutil
+
+    from core import CacheCollection
     
     col = CacheCollection(name="test_cache", dimension=4)
     vectors = np.random.rand(2, 4).astype(np.float32)
@@ -198,8 +201,9 @@ def test_cache_collection(tmp_path):
         shutil.rmtree("cache_test_cache")
 
 def test_cache_collection_quantized():
-    from core import CacheCollection
     import shutil
+
+    from core import CacheCollection
     
     col = CacheCollection(name="test_q_cache", dimension=4)
     vectors = np.random.rand(1, 4).astype(np.float32)
@@ -220,8 +224,9 @@ def test_cache_collection_quantized():
         shutil.rmtree("cache_test_q_cache")
 
 def test_state_collection(tmp_path):
-    from core import StateCollection
     import shutil
+
+    from core import StateCollection
     
     col = StateCollection(name="test_state", dimension=4)
     vectors = np.random.rand(2, 4).astype(np.float32)
@@ -292,8 +297,9 @@ def test_spatial_collection():
     assert 1 not in ids
 
 def test_temporal_collection():
-    from core import TemporalCollection
     import time
+
+    from core import TemporalCollection
     
     col = TemporalCollection(dimension=4)
     vectors = np.eye(4, dtype=np.float32)
@@ -345,8 +351,9 @@ def test_agentic_collection():
     assert "feedback_score" in results[0][0]
 
 def test_collection_export_qdrant():
+    from unittest.mock import patch
+
     from core import Collection
-    from unittest.mock import MagicMock, patch
     
     col = Collection(dimension=4)
     col.add(np.eye(4, dtype=np.float32))
@@ -364,8 +371,8 @@ def test_collection_export_invalid():
         col.export_to_production(backend="invalid", connection_url="http://mock")
 
 def test_session_management(tmp_path):
+
     from core import Session
-    import shutil
     
     storage = os.path.join(tmp_path, "sessions")
     sess = Session(session_id="test_agent_1", dimension=4, storage_dir=storage)
@@ -384,3 +391,50 @@ def test_session_management(tmp_path):
     assert len(sess2.collection._metadata) == 1
     
     sess.cleanup()
+
+def test_collection_generate_synthetic_queries(tmp_path, monkeypatch):
+    col = Collection(dimension=4)
+    vectors = np.random.rand(2, 4).astype(np.float32)
+    metadata = [
+        {"id": 1, "text": "This is a document about machine learning."},
+        {"id": 2, "text": "This is another document about artificial intelligence."}
+    ]
+    col.add(vectors, metadata)
+    
+    # Mock litellm.completion
+    class MockMessage:
+        content = "query 1\nquery 2"
+    class MockChoice:
+        message = MockMessage()
+    class MockResponse:
+        choices = [MockChoice()]
+        
+    import litellm
+    monkeypatch.setattr(litellm, "completion", lambda **kwargs: MockResponse())
+    
+    out_path = str(tmp_path / "synthetic.jsonl")
+    
+    results = col.generate_synthetic_queries(
+        text_key="text",
+        n_queries_per_doc=2,
+        num_docs=2,
+        output_path=out_path
+    )
+    
+    assert len(results) == 4
+    assert results[0]["query"] == "query 1"
+    assert results[0]["doc_id"] in [1, 2]
+    assert "doc_text" in results[0]
+    
+    assert os.path.exists(out_path)
+    
+    # Test with custom prompt
+    results_custom = col.generate_synthetic_queries(
+        text_key="text",
+        n_queries_per_doc=1,
+        custom_prompt="Generate {n} query for: {text}"
+    )
+    # The mock always returns "query 1\nquery 2" and we ask for 1 query per doc
+    assert len(results_custom) == 2
+    assert results_custom[0]["query"] == "query 1"
+
