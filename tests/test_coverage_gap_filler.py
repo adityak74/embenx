@@ -1,11 +1,17 @@
-import pytest
-import numpy as np
 import os
-import shutil
-from unittest.mock import patch, MagicMock
-from core import Collection, CacheCollection, StateCollection, ClusterCollection, TemporalCollection, AgenticCollection, Session
-from data import load_from_zoo, list_zoo, load_documents
-import asyncio
+from unittest.mock import patch
+
+import numpy as np
+import pytest
+
+from core import (
+    CacheCollection,
+    ClusterCollection,
+    Collection,
+    StateCollection,
+)
+from data import load_documents, load_from_zoo
+
 
 def test_collection_multimodal_clip_logic():
     col = Collection(dimension=512)

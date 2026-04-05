@@ -1,12 +1,13 @@
+
 import numpy as np
-from unittest.mock import patch, MagicMock
+
 from indexers.annoy_indexer import AnnoyIndexer
+from indexers.base import BaseIndexer
 from indexers.duckdb_indexer import DuckDBIndexer
 from indexers.faiss_indexer import FaissIndexer
 from indexers.hnswlib_indexer import HNSWLibIndexer
 from indexers.simple_indexer import SimpleIndexer
 from indexers.usearch_indexer import USearchIndexer
-from indexers.base import BaseIndexer
 
 
 def test_faiss_indexer():

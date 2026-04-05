@@ -1,6 +1,7 @@
+import numpy as np
 from embenx import Collection
 from embenx.rerank import RerankHandler
-import numpy as np
+
 
 def run_reranking_example():
     print("--- Advanced Reranking Example (FlashRank) ---")

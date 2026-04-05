@@ -101,3 +101,33 @@ Embenx makes it easy to measure the performance of different indexers on your ow
 
    # Benchmark multiple indexers side-by-side
    col.benchmark(indexers=["faiss", "usearch", "hnswlib"])
+
+Synthetic Data Generation
+-------------------------
+
+Embenx allows you to generate high-quality synthetic query-document pairs from your collections using LLMs. This is useful for creating fine-tuning datasets or evaluation benchmarks.
+
+.. code-block:: python
+
+   # 1. Generate queries using LiteLLM (v1.83.0+)
+   # Supports GPT-4, Claude, Gemini, etc.
+   results = col.generate_synthetic_queries(
+       text_key="text",
+       n_queries_per_doc=2,
+       num_docs=100,
+       model="gpt-4o-mini"
+   )
+
+   # 2. Use a local LLM (Ollama)
+   # Requires running: ollama run llama3
+   results = col.generate_synthetic_queries(
+       model="ollama/llama3",
+       api_base="http://localhost:11434",
+       output_path="training_data.parquet"
+   )
+
+   # 3. Export to JSONL or CSV
+   col.generate_synthetic_queries(
+       n_queries_per_doc=1,
+       output_path="eval_bench.jsonl"
+   )

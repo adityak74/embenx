@@ -1,5 +1,6 @@
-from embenx import Collection
 import numpy as np
+from embenx import Collection
+
 
 def run_evaluation_example():
     print("--- Recall & Latency Evaluation Example ---")

@@ -53,6 +53,13 @@ results = col.search(
 
 # 4. Export to production
 col.export_to_production(backend="qdrant", connection_url="http://localhost:6333")
+
+# 5. Generate synthetic data (training/eval)
+# Supports LiteLLM (v1.83.0+) and local Ollama
+pairs = col.generate_synthetic_queries(
+    n_queries_per_doc=2,
+    output_path="synthetic_data.jsonl"
+)
 ```
 
 ## Agentic Memory (MCP)
@@ -74,6 +81,7 @@ embenx explorer
 
 ## Features
 
+- **Synthetic Data Generation** — Create high-quality query-document pairs using LLMs for training and evaluation.
 - **Multimodal Support** — Native support for image embeddings (CLIP).
 - **RAG Playground** — Test retrieval quality with an integrated LLM chat loop.
 - **HNSW Graph Visualizer** — Interactive 3D visualization of navigation layers.

@@ -4,7 +4,7 @@ import numpy as np
 
 try:
     from vespa.application import Vespa
-    from vespa.package import ApplicationPackage, Field, Schema, Document
+    from vespa.package import ApplicationPackage, Document, Field, Schema
 except ImportError:
     Vespa = None
 

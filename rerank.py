@@ -1,5 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple, Union
-import numpy as np
+from typing import Any, Dict, List, Tuple
 
 try:
     from rerankers import Reranker

@@ -1,7 +1,9 @@
-import pytest
 import numpy as np
-from indexers.bm25_indexer import BM25Indexer
+import pytest
+
 from core import Collection
+from indexers.bm25_indexer import BM25Indexer
+
 
 def test_bm25_indexer():
     indexer = BM25Indexer(dimension=0)

@@ -1,7 +1,9 @@
-from embenx.core import CacheCollection
-import numpy as np
 import os
 import shutil
+
+import numpy as np
+from embenx.core import CacheCollection
+
 
 def run_turboquant_example():
     print("--- TurboQuant-style 1-bit Activation Compression Example ---")

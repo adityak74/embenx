@@ -1,5 +1,4 @@
 import os
-import time
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -7,10 +6,10 @@ from rich.console import Console
 
 from benchmark import (
     benchmark_single_indexer,
+    generate_report,
     get_memory_usage,
     load_custom_indexer,
     run_benchmark,
-    generate_report
 )
 
 
@@ -174,8 +173,9 @@ def test_generate_report(tmp_path):
         assert "test-ds" in content
 
 def test_grand_benchmark_cli():
-    from cli import app
     from typer.testing import CliRunner
+
+    from cli import app
     runner = CliRunner()
     
     with patch("benchmark.run_benchmark") as mock_run, \

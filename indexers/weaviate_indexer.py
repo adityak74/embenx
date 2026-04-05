@@ -1,9 +1,12 @@
-import weaviate
-from weaviate.classes.init import AdditionalConfig, Timeout
-from weaviate.classes.config import Configure, Property, DataType, VectorDistances
-from typing import List, Dict, Any, Tuple
 import os
+from typing import Any, Dict, List, Tuple
+
+import weaviate
+from weaviate.classes.config import Configure, DataType, Property, VectorDistances
+from weaviate.classes.init import AdditionalConfig, Timeout
+
 from .base import BaseIndexer
+
 
 class WeaviateIndexer(BaseIndexer):
     def __init__(self, dimension: int):

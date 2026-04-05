@@ -1,7 +1,9 @@
+from unittest.mock import patch
+
 import pytest
-import asyncio
-from unittest.mock import patch, MagicMock
-from mcp_server import list_tools_impl, call_tool_impl
+
+from mcp_server import call_tool_impl, list_tools_impl
+
 
 @pytest.mark.asyncio
 async def test_mcp_list_tools():

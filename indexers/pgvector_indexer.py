@@ -2,8 +2,6 @@ import json
 import os
 from typing import Any, Dict, List, Tuple
 
-import numpy as np
-
 try:
     import psycopg2
     from psycopg2.extras import execute_values

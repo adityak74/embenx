@@ -1,7 +1,9 @@
-from embenx.core import CacheCollection
-import numpy as np
 import os
 import shutil
+
+import numpy as np
+from embenx.core import CacheCollection
+
 
 def run_rakvc_example():
     print("--- Retrieval-Augmented KV Caching (RA-KVC) Example ---")

@@ -1,6 +1,6 @@
-from embenx import Collection
-from embenx.llm import Embedder
 import numpy as np
+from embenx import Collection
+
 
 def run_matryoshka_example():
     print("--- Matryoshka Truncation Example ---")

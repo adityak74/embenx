@@ -1,6 +1,9 @@
-from indexers.base import BaseIndexer
-from typing import List, Dict, Any, Tuple
+from typing import Any, Dict, List, Tuple
+
 import numpy as np
+
+from indexers.base import BaseIndexer
+
 
 class MyMockIndexer(BaseIndexer):
     """

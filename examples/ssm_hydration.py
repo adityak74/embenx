@@ -1,7 +1,9 @@
-from embenx.core import StateCollection
-import numpy as np
 import os
 import shutil
+
+import numpy as np
+from embenx.core import StateCollection
+
 
 def run_ssm_example():
     print("--- State Space Model (SSM) Hydration Example ---")

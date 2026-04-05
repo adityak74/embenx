@@ -1,14 +1,12 @@
 import os
-import json
 import subprocess
-from typing import Optional, List, Dict, Any
+from typing import Optional
 
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
+from rich.table import Table
 
-from core import Collection
 from mcp_server import run
 
 app = typer.Typer(help="Embenx: Universal Embedding Retrieval Toolkit & Benchmark.")
@@ -93,7 +91,7 @@ def setup(
             if model_name in result.stdout:
                 console.print(f"[bold green]✓ Model '{model_name}' is available[/bold green]")
             else:
-                console.print(f"[bold red]✖ Model not found in Ollama.[/bold red]")
+                console.print("[bold red]✖ Model not found in Ollama.[/bold red]")
                 console.print("[dim]Run with --pull to download it automatically.[/dim]")
         except Exception as e:
             console.print(f"[bold red]Ollama error: {e}[/bold red]")
@@ -119,7 +117,7 @@ def benchmark(
     """
     Run Embenx benchmarks on local or remote data.
     """
-    from benchmark import run_benchmark, generate_report
+    from benchmark import generate_report, run_benchmark
 
     indexer_list = indexers.split(",") if indexers != "all" else None
 
@@ -153,7 +151,7 @@ def grand_benchmark(
     """
     Run benchmarks across all Retrieval Zoo datasets and generate a Grand Report.
     """
-    from benchmark import run_benchmark, generate_report
+    from benchmark import generate_report, run_benchmark
     from data import list_zoo
     
     datasets = list_zoo()
