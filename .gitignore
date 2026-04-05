@@ -3,6 +3,7 @@ __pycache__/
 .DS_Store
 *.db
 *.lance
+*.parquet
 docs/*.html
 !docs/index.html
 docs/
