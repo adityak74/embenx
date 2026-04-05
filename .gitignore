@@ -8,3 +8,6 @@ docs/*.html
 !docs/index.html
 docs/
 research/
+dist/
+build/
+*.egg-info
