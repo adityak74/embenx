@@ -1,8 +1,9 @@
-import pytest
-from unittest.mock import patch, MagicMock
 import importlib
 import sys
-import os
+from unittest.mock import patch
+
+import pytest
+
 
 # Test that all indexers raise ImportError when their dependency is missing
 @pytest.mark.parametrize("indexer_module, class_name, mock_target", [
@@ -62,8 +63,9 @@ def test_collection_to_parquet_empty():
         col.to_parquet("dummy.parquet")
 
 def test_display_results_calling():
-    from benchmark import display_results
     from rich.console import Console
+
+    from benchmark import display_results
     console = Console(quiet=True)
     results = [{
         "Indexer": "TEST", "Build Time (s)": "0.1", "Query Time (ms)": "1.0", 
@@ -72,8 +74,9 @@ def test_display_results_calling():
     display_results(results, console)
 
 def test_cli_setup_full_check():
-    from cli import app
     from typer.testing import CliRunner
+
+    from cli import app
     runner = CliRunner()
     with patch("subprocess.run") as mock_run:
         mock_run.return_value.stdout = "nomic-embed-text"

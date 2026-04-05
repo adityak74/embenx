@@ -1,10 +1,12 @@
-import pytest
-import numpy as np
-import os
 import sys
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import numpy as np
+import pytest
+
 from core import Collection
 from llm import Embedder
+
 
 def test_embedder_matryoshka():
     # Test truncation in Embedder
@@ -41,8 +43,9 @@ def test_collection_matryoshka():
 
 def test_rerank_handler_init_fail():
     with patch.dict(sys.modules, {"rerankers": None}):
-        import rerank
         from importlib import reload
+
+        import rerank
         reload(rerank)
         # Re-import to get the version where Reranker is None
         from rerank import RerankHandler

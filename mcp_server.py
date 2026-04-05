@@ -1,10 +1,10 @@
 import asyncio
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
-from mcp.server.stdio import stdio_server
 from mcp.server import Server
-from mcp.types import Tool, TextContent, ImageContent, EmbeddedResource
+from mcp.server.stdio import stdio_server
+from mcp.types import EmbeddedResource, ImageContent, TextContent, Tool
 
 from core import Collection
 from llm import Embedder

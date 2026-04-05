@@ -1,5 +1,6 @@
-from embenx import Collection
 import numpy as np
+from embenx import Collection
+
 
 def run_usearch_example():
     print("--- USearch Quantization Example ---")

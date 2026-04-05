@@ -1,6 +1,8 @@
-from embenx.core import TemporalCollection
-import numpy as np
 import time
+
+import numpy as np
+from embenx.core import TemporalCollection
+
 
 def run_echo_example():
     print("--- Echo Temporal Episodic Memory Example ---")
@@ -34,7 +36,7 @@ def run_echo_example():
         print(f" {i+1}. {meta['text']} (Combined Dist: {score:.4f}, Timestamp: {meta['timestamp']})")
 
     # 4. Search with a specific time window (last 2 hours)
-    print(f"\n2. Searching within a 2-hour time window...")
+    print("\n2. Searching within a 2-hour time window...")
     window = (now - 7200, now + 10)
     results_window = col.search_temporal(query, top_k=5, time_window=window)
     for i, (meta, score) in enumerate(results_window):

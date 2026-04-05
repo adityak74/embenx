@@ -1,5 +1,6 @@
-from embenx.benchmark import run_benchmark, generate_report
+from embenx.benchmark import generate_report, run_benchmark
 from rich.console import Console
+
 
 def run_report_example():
     console = Console()

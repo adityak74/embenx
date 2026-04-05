@@ -1,15 +1,16 @@
-import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
 import glob
 import os
-import networkx as nx
-from core import Collection
+
 import litellm
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import streamlit as st
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+
+from core import Collection
 
 st.set_page_config(page_title="Embenx Explorer 🚀", layout="wide")
 

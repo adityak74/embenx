@@ -1,10 +1,10 @@
-import pytest
-import numpy as np
-from unittest.mock import patch, MagicMock
-from indexers.qdrant_indexer import QdrantIndexer
+from unittest.mock import MagicMock, patch
+
 from indexers.chroma_indexer import ChromaIndexer
-from indexers.milvus_indexer import MilvusIndexer
 from indexers.lance_indexer import LanceIndexer
+from indexers.milvus_indexer import MilvusIndexer
+from indexers.qdrant_indexer import QdrantIndexer
+
 
 def test_qdrant_indexer():
     with patch("indexers.qdrant_indexer.qdrant_client.QdrantClient") as mock_client:

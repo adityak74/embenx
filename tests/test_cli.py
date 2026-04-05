@@ -1,8 +1,9 @@
-from typer.testing import CliRunner
-from cli import app
 import os
-import shutil
 from unittest.mock import patch
+
+from typer.testing import CliRunner
+
+from cli import app
 
 runner = CliRunner()
 

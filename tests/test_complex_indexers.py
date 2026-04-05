@@ -1,10 +1,10 @@
-import pytest
-from unittest.mock import patch, MagicMock
-import numpy as np
-from indexers.scann_indexer import ScaNNIndexer
-from indexers.vespa_indexer import VespaIndexer
+from unittest.mock import patch
+
 from indexers.elasticsearch_indexer import ElasticsearchIndexer
 from indexers.pgvector_indexer import PGVectorIndexer
+from indexers.scann_indexer import ScaNNIndexer
+from indexers.vespa_indexer import VespaIndexer
+
 
 def test_scann_indexer():
     with patch("indexers.scann_indexer.scann") as mock_scann:

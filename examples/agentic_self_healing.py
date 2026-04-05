@@ -1,5 +1,6 @@
-from embenx.core import AgenticCollection
 import numpy as np
+from embenx.core import AgenticCollection
+
 
 def run_agentic_example():
     print("--- Agentic Self-Healing Memory Example ---")

@@ -1,9 +1,8 @@
-import pytest
-import numpy as np
-import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from core import Collection
 from llm import Embedder
+
 
 def test_embedder_image_path_detection():
     emb = Embedder("dummy")

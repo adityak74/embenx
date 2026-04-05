@@ -1,6 +1,8 @@
-from embenx import Collection
-import numpy as np
 import os
+
+import numpy as np
+from embenx import Collection
+
 
 def run_db_examples():
     """

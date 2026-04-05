@@ -1,8 +1,8 @@
-from embenx.core import Session
-import numpy as np
 import time
-import shutil
-import os
+
+import numpy as np
+from embenx.core import Session
+
 
 def run_session_example():
     print("--- Managed Agentic Session Example ---")

@@ -1,6 +1,7 @@
-import os
 import json
-from typing import Optional, List, Dict, Any
+import os
+from typing import Any, Dict, List
+
 from core import Collection
 
 # --- Retrieval Zoo Mapping ---

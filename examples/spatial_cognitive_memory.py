@@ -1,5 +1,6 @@
-from embenx.core import SpatialCollection
 import numpy as np
+from embenx.core import SpatialCollection
+
 
 def run_spatial_example():
     print("--- ESWM Neuroscience-inspired Spatial Memory Example ---")

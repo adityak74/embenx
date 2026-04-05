@@ -1,6 +1,7 @@
-from embenx import Collection
+
 import numpy as np
-import os
+from embenx import Collection
+
 
 def run_multimodal_example():
     print("--- Multimodal Image Retrieval Example ---")

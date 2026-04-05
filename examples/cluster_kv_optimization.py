@@ -1,5 +1,6 @@
-from embenx.core import ClusterCollection
 import numpy as np
+from embenx.core import ClusterCollection
+
 
 def run_clusterkv_example():
     print("--- ClusterKV-style Semantic Clustering Example ---")

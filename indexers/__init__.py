@@ -1,5 +1,7 @@
 import importlib
+
 from .base import BaseIndexer
+
 
 def get_indexer_map():
     # Registry of indexer names to (module_path, class_name, optional_init_kwargs)

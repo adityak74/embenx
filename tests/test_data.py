@@ -1,8 +1,8 @@
+
 import pytest
-import os
-import pandas as pd
-import numpy as np
+
 from data import list_zoo
+
 
 def test_zoo_listing():
     datasets = list_zoo()

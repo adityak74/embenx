@@ -2,7 +2,7 @@ import importlib.util
 import inspect
 import os
 import time
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List
 
 import psutil
 from rich.console import Console
@@ -198,7 +198,7 @@ def generate_report(results: List[Dict[str, Any]], dataset_name: str, output_pat
     import datetime
     
     report = []
-    report.append(f"# Embenx Retrieval Benchmark Report 🚀")
+    report.append("# Embenx Retrieval Benchmark Report 🚀")
     report.append(f"Generated on: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     report.append(f"Dataset: **{dataset_name}**")
     report.append("\n## Executive Summary")

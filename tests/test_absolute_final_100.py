@@ -1,10 +1,11 @@
-import pytest
-from unittest.mock import patch, MagicMock
-import sys
-import os
 import importlib
+import sys
+from unittest.mock import MagicMock, patch
+
 import numpy as np
+import pytest
 from typer.testing import CliRunner
+
 
 @pytest.fixture
 def runner():
@@ -14,17 +15,16 @@ def test_the_absolute_100_percent_coverage(runner):
     import cli
     import core
     import data
-    import indexers.faiss_indexer
     import indexers.annoy_indexer
+    import indexers.elasticsearch_indexer
+    import indexers.faiss_indexer
     import indexers.hnswlib_indexer
-    import indexers.usearch_indexer
     import indexers.milvus_indexer
     import indexers.pgvector_indexer
     import indexers.scann_indexer
-    import indexers.elasticsearch_indexer
+    import indexers.usearch_indexer
     import indexers.vespa_indexer
     import indexers.weaviate_indexer
-    import benchmark
 
     # 1. Force top-level ImportErrors (hits scann 19, es 23, vespa 7, pgvector 25)
     with patch.dict(sys.modules, {"scann": None, "elasticsearch": None, "vespa": None, "psycopg2": None}):

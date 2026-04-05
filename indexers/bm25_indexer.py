@@ -1,7 +1,10 @@
-from typing import Any, Dict, List, Tuple, Optional
-from rank_bm25 import BM25Okapi
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
+from rank_bm25 import BM25Okapi
+
 from .base import BaseIndexer
+
 
 class BM25Indexer(BaseIndexer):
     """

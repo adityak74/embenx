@@ -1,11 +1,10 @@
-import pytest
-from unittest.mock import patch, MagicMock
-import importlib
-import sys
-import os
+from unittest.mock import MagicMock, patch
+
 import numpy as np
+import pytest
 from rich.console import Console
 from typer.testing import CliRunner
+
 
 @pytest.fixture
 def console():
