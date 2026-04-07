@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="embenx.png" alt="Embenx Logo" width="200"/>
+
 <h1>Embenx 🚀</h1>
 
 <p>
