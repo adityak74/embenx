@@ -1,6 +1,6 @@
 [project]
 name = "embenx"
-version = "1.4.0"
+version = "1.5.0"
 description = "The Agentic Memory Layer & Universal Retrieval Toolkit. Synthetic data generation, 15+ vector backends, hybrid search, and MCP native memory for AI agents."
 authors = [{ name = "adityak74", email = "adityakarnam@gmail.com" }]
 license = { text = "MIT" }
@@ -54,7 +54,7 @@ profile = "black"
 line_length = 100
 
 [tool.bumpversion]
-current_version = "1.4.0"
+current_version = "1.5.0"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
 serialize = ["{major}.{minor}.{patch}"]
 search = "{current_version}"
