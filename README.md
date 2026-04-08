@@ -41,10 +41,14 @@ from embenx import Collection
 col = Collection(dimension=768, indexer_type="faiss-hnsw")
 
 # 2. Add data
+# Supports incremental O(1) additions and bulk 'add_batch'
 col.add(
     vectors=[[0.1, 0.2, ...], [0.3, 0.4, ...]],
     metadata=[{"category": "AI", "id": 1, "text": "The quick brown fox"}]
 )
+
+# Bulk batch ingestion with progress bar
+col.add_batch(large_vectors, batch_size=1000, show_progress=True)
 
 # 3. Search with filtering
 results = col.search(

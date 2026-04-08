@@ -38,6 +38,45 @@ The primary interface is the ``Collection`` class. It provides a table-like abst
    # Load back
    new_col = Collection.from_parquet("my_memory.parquet")
 
+High-Performance Data Ingestion
+-------------------------------
+
+Embenx is optimized for both incremental additions and large-scale batch ingestion.
+
+Batch Insertion
+~~~~~~~~~~~~~~~
+
+For datasets with thousands of items, use ``add_batch``. It handles internal chunking to manage memory efficiently and provides an optional progress bar.
+
+.. code-block:: python
+
+   # Insert large datasets in chunks of 1000
+   # Set show_progress=True to see a tqdm progress bar
+   col.add_batch(
+       large_vector_array, 
+       metadata_list, 
+       batch_size=1000, 
+       show_progress=True
+   )
+
+Incremental Addition Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The standard ``add`` method is now optimized for high-frequency, small-batch updates (common in agentic memory streams). 
+
+- **Internal Buffering**: Instead of immediate consolidation, ``add`` stores vectors in an $O(1)$ list buffer.
+- **Lazy Consolidation**: Vectors are consolidated into a single NumPy array only when specifically required (e.g., during benchmarking or search baselines).
+- **Auto-Flush**: Accessing the ``_vectors`` property or calling methods that require consolidated data automatically triggers a ``flush()``.
+
+.. code-block:: python
+
+   # High-frequency O(1) additions
+   for vec in incoming_stream:
+       col.add([vec])  # Extremely fast, no O(N) vstack here
+
+   # Data is consolidated automatically when search or I/O is performed
+   col.to_parquet("optimized_memory.parquet")
+
 Advanced Retrieval Features
 --------------------------
 
