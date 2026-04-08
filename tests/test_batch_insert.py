@@ -31,17 +31,19 @@ def test_lazy_flush():
     
     # add uses buffer
     col.add(vectors[:5])
-    assert col._vectors is None
+    # _vectors would auto-flush, so we check _consolidated_vectors
+    assert col._consolidated_vectors is None
     assert len(col._vector_buffer) == 1
     
     col.add(vectors[5:])
-    assert col._vectors is None
+    assert col._consolidated_vectors is None
     assert len(col._vector_buffer) == 2
     
-    # flush consolidates
-    col.flush()
-    assert col._vectors is not None
-    assert col._vectors.shape == (10, 4)
+    # Accessing _vectors property triggers flush
+    vecs = col._vectors
+    assert vecs is not None
+    assert col._consolidated_vectors is not None
+    assert col._consolidated_vectors.shape == (10, 4)
     assert len(col._vector_buffer) == 0
 
 def test_get_vectors_auto_flush():
@@ -52,7 +54,7 @@ def test_get_vectors_auto_flush():
     vecs = col._get_vectors()
     
     assert vecs.shape == (10, 4)
-    assert col._vectors is not None
+    assert col._consolidated_vectors is not None
 
 def test_add_batch_progress(monkeypatch):
     # Mock tqdm to ensure it's called

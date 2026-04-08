@@ -38,7 +38,7 @@ class Collection:
         self.indexer_kwargs = indexer_kwargs
         self.indexer: Optional[BaseIndexer] = None
         self.sparse_indexer: Optional[BaseIndexer] = None
-        self._vectors = None
+        self._consolidated_vectors = None
         self._metadata = []
         self._vector_buffer = []
 
@@ -46,6 +46,16 @@ class Collection:
             self._init_indexer(self.dimension)
         if self.sparse_indexer_type:
             self._init_sparse_indexer()
+
+    @property
+    def _vectors(self):
+        """Internal vectors, automatically flushed when accessed."""
+        self.flush()
+        return self._consolidated_vectors
+
+    @_vectors.setter
+    def _vectors(self, value):
+        self._consolidated_vectors = value
 
     def _init_indexer(self, dimension: int):
         indexer_map = get_indexer_map()
@@ -98,7 +108,7 @@ class Collection:
         self._metadata.extend(meta)
         
         # Lazy consolidation - only vstack when specifically needed
-        self._vectors = None # Invalidated
+        self._consolidated_vectors = None # Invalidated
 
     def add_batch(
         self,
@@ -138,16 +148,15 @@ class Collection:
     def flush(self):
         """Consolidate buffered vectors into a single numpy array."""
         if self._vector_buffer:
-            if self._vectors is None:
-                self._vectors = np.vstack(self._vector_buffer)
+            if self._consolidated_vectors is None:
+                self._consolidated_vectors = np.vstack(self._vector_buffer)
             else:
-                self._vectors = np.vstack([self._vectors] + self._vector_buffer)
+                self._consolidated_vectors = np.vstack([self._consolidated_vectors] + self._vector_buffer)
             self._vector_buffer = []
 
     def _get_vectors(self) -> np.ndarray:
         """Helper to get consolidated vectors, flushing if necessary."""
-        self.flush()
-        return self._vectors
+        return self._vectors # Uses property
 
     def add_images(self, image_paths: List[str], model: str = "openai/clip-vit-base-patch32", metadata: Optional[List[Dict[str, Any]]] = None):
         """
@@ -305,7 +314,6 @@ class Collection:
                       If None, benchmarks all available indexers.
             top_k: Number of neighbors to search for during benchmark.
         """
-        self.flush()
         if self._vectors is None:
             raise RuntimeError("Collection is empty. Add data before benchmarking.")
 
@@ -348,7 +356,6 @@ class Collection:
         Returns:
             Dictionary with 'recall' and 'latency_ms' metrics.
         """
-        self.flush()
         if self._vectors is None:
             raise RuntimeError("Collection is empty. Add data before evaluating.")
 
@@ -410,7 +417,6 @@ class Collection:
         One-click export from local Embenx collection to production clusters.
         Supported backends: 'qdrant', 'milvus'.
         """
-        self.flush()
         if self._vectors is None:
             raise RuntimeError("Collection is empty. Add data before exporting.")
             
@@ -559,7 +565,6 @@ class Collection:
 
     def to_parquet(self, path: str, vector_col: str = "vector"):
         """Save the collection to a Parquet file."""
-        self.flush()
         if self._vectors is None:
             raise RuntimeError("Collection is empty.")
 
@@ -685,7 +690,6 @@ class ClusterCollection(Collection):
         """
         Perform semantic clustering on the current collection data.
         """
-        self.flush()
         if self._vectors is None or len(self._vectors) < self.n_clusters:
             return
             
@@ -706,8 +710,7 @@ class ClusterCollection(Collection):
         """
         Search for vectors by first identifying the most relevant cluster.
         """
-        self.flush()
-        if self._get_vectors() is None:
+        if self._vectors is None:
             return []
             
         # 1. Identify nearest cluster
@@ -720,8 +723,7 @@ class ClusterCollection(Collection):
             return self.search(query, top_k=top_k)
             
         # 3. Brute force within cluster (simulating ClusterKV pattern)
-        vectors = self._get_vectors()
-        cluster_vectors = vectors[indices]
+        cluster_vectors = self._vectors[indices]
         cluster_metadata = [self._metadata[i] for i in indices]
         
         # Simple cosine similarity within cluster
