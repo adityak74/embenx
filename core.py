@@ -38,13 +38,24 @@ class Collection:
         self.indexer_kwargs = indexer_kwargs
         self.indexer: Optional[BaseIndexer] = None
         self.sparse_indexer: Optional[BaseIndexer] = None
-        self._vectors = None
+        self._consolidated_vectors = None
         self._metadata = []
+        self._vector_buffer = []
 
         if self.dimension:
             self._init_indexer(self.dimension)
         if self.sparse_indexer_type:
             self._init_sparse_indexer()
+
+    @property
+    def _vectors(self):
+        """Internal vectors, automatically flushed when accessed."""
+        self.flush()
+        return self._consolidated_vectors
+
+    @_vectors.setter
+    def _vectors(self, value):
+        self._consolidated_vectors = value
 
     def _init_indexer(self, dimension: int):
         indexer_map = get_indexer_map()
@@ -92,12 +103,60 @@ class Collection:
         if self.sparse_indexer:
             self.sparse_indexer.build_index(vectors.tolist(), meta)
 
-        # Keep local copy for I/O and non-native operations
-        if self._vectors is None:
-            self._vectors = vectors
-        else:
-            self._vectors = np.vstack([self._vectors, vectors])
+        # Use a list of buffers for O(1) append instead of O(N) vstack
+        self._vector_buffer.append(vectors)
         self._metadata.extend(meta)
+        
+        # Lazy consolidation - only vstack when specifically needed
+        self._consolidated_vectors = None # Invalidated
+
+    def add_batch(
+        self,
+        vectors: Union[np.ndarray, List[List[float]]],
+        metadata: Optional[List[Dict[str, Any]]] = None,
+        batch_size: int = 1000,
+        show_progress: bool = False,
+    ):
+        """
+        Add vectors and metadata to the collection in batches to manage memory and provide progress updates.
+        
+        Args:
+            vectors: Large array or list of vectors.
+            metadata: Optional list of metadata dictionaries.
+            batch_size: Size of batches to use when chunking.
+            show_progress: If True, show a progress bar using tqdm.
+        """
+        num_items = len(vectors)
+        meta = metadata or [{} for _ in range(num_items)]
+        
+        indices = range(0, num_items, batch_size)
+        if show_progress:
+            try:
+                from tqdm import tqdm
+                indices = tqdm(indices, desc=f"Adding to {self.name}", total=(num_items + batch_size - 1) // batch_size)
+            except ImportError:
+                pass
+                
+        for i in indices:
+            batch_vectors = vectors[i : i + batch_size]
+            batch_meta = meta[i : i + batch_size]
+            self.add(batch_vectors, batch_meta)
+        
+        # Auto-flush after batch add
+        self.flush()
+
+    def flush(self):
+        """Consolidate buffered vectors into a single numpy array."""
+        if self._vector_buffer:
+            if self._consolidated_vectors is None:
+                self._consolidated_vectors = np.vstack(self._vector_buffer)
+            else:
+                self._consolidated_vectors = np.vstack([self._consolidated_vectors] + self._vector_buffer)
+            self._vector_buffer = []
+
+    def _get_vectors(self) -> np.ndarray:
+        """Helper to get consolidated vectors, flushing if necessary."""
+        return self._vectors # Uses property
 
     def add_images(self, image_paths: List[str], model: str = "openai/clip-vit-base-patch32", metadata: Optional[List[Dict[str, Any]]] = None):
         """
