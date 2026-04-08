@@ -40,6 +40,7 @@ class Collection:
         self.sparse_indexer: Optional[BaseIndexer] = None
         self._vectors = None
         self._metadata = []
+        self._vector_buffer = []
 
         if self.dimension:
             self._init_indexer(self.dimension)
@@ -92,12 +93,61 @@ class Collection:
         if self.sparse_indexer:
             self.sparse_indexer.build_index(vectors.tolist(), meta)
 
-        # Keep local copy for I/O and non-native operations
-        if self._vectors is None:
-            self._vectors = vectors
-        else:
-            self._vectors = np.vstack([self._vectors, vectors])
+        # Use a list of buffers for O(1) append instead of O(N) vstack
+        self._vector_buffer.append(vectors)
         self._metadata.extend(meta)
+        
+        # Lazy consolidation - only vstack when specifically needed
+        self._vectors = None # Invalidated
+
+    def add_batch(
+        self,
+        vectors: Union[np.ndarray, List[List[float]]],
+        metadata: Optional[List[Dict[str, Any]]] = None,
+        batch_size: int = 1000,
+        show_progress: bool = False,
+    ):
+        """
+        Add vectors and metadata to the collection in batches to manage memory and provide progress updates.
+        
+        Args:
+            vectors: Large array or list of vectors.
+            metadata: Optional list of metadata dictionaries.
+            batch_size: Size of batches to use when chunking.
+            show_progress: If True, show a progress bar using tqdm.
+        """
+        num_items = len(vectors)
+        meta = metadata or [{} for _ in range(num_items)]
+        
+        indices = range(0, num_items, batch_size)
+        if show_progress:
+            try:
+                from tqdm import tqdm
+                indices = tqdm(indices, desc=f"Adding to {self.name}", total=(num_items + batch_size - 1) // batch_size)
+            except ImportError:
+                pass
+                
+        for i in indices:
+            batch_vectors = vectors[i : i + batch_size]
+            batch_meta = meta[i : i + batch_size]
+            self.add(batch_vectors, batch_meta)
+        
+        # Auto-flush after batch add
+        self.flush()
+
+    def flush(self):
+        """Consolidate buffered vectors into a single numpy array."""
+        if self._vector_buffer:
+            if self._vectors is None:
+                self._vectors = np.vstack(self._vector_buffer)
+            else:
+                self._vectors = np.vstack([self._vectors] + self._vector_buffer)
+            self._vector_buffer = []
+
+    def _get_vectors(self) -> np.ndarray:
+        """Helper to get consolidated vectors, flushing if necessary."""
+        self.flush()
+        return self._vectors
 
     def add_images(self, image_paths: List[str], model: str = "openai/clip-vit-base-patch32", metadata: Optional[List[Dict[str, Any]]] = None):
         """
@@ -255,6 +305,7 @@ class Collection:
                       If None, benchmarks all available indexers.
             top_k: Number of neighbors to search for during benchmark.
         """
+        self.flush()
         if self._vectors is None:
             raise RuntimeError("Collection is empty. Add data before benchmarking.")
 
@@ -297,6 +348,7 @@ class Collection:
         Returns:
             Dictionary with 'recall' and 'latency_ms' metrics.
         """
+        self.flush()
         if self._vectors is None:
             raise RuntimeError("Collection is empty. Add data before evaluating.")
 
@@ -358,6 +410,7 @@ class Collection:
         One-click export from local Embenx collection to production clusters.
         Supported backends: 'qdrant', 'milvus'.
         """
+        self.flush()
         if self._vectors is None:
             raise RuntimeError("Collection is empty. Add data before exporting.")
             
@@ -506,6 +559,7 @@ class Collection:
 
     def to_parquet(self, path: str, vector_col: str = "vector"):
         """Save the collection to a Parquet file."""
+        self.flush()
         if self._vectors is None:
             raise RuntimeError("Collection is empty.")
 
@@ -631,6 +685,7 @@ class ClusterCollection(Collection):
         """
         Perform semantic clustering on the current collection data.
         """
+        self.flush()
         if self._vectors is None or len(self._vectors) < self.n_clusters:
             return
             
@@ -651,7 +706,8 @@ class ClusterCollection(Collection):
         """
         Search for vectors by first identifying the most relevant cluster.
         """
-        if self._vectors is None:
+        self.flush()
+        if self._get_vectors() is None:
             return []
             
         # 1. Identify nearest cluster
@@ -664,7 +720,8 @@ class ClusterCollection(Collection):
             return self.search(query, top_k=top_k)
             
         # 3. Brute force within cluster (simulating ClusterKV pattern)
-        cluster_vectors = self._vectors[indices]
+        vectors = self._get_vectors()
+        cluster_vectors = vectors[indices]
         cluster_metadata = [self._metadata[i] for i in indices]
         
         # Simple cosine similarity within cluster
