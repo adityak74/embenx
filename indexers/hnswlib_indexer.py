@@ -18,17 +18,17 @@ class HNSWLibIndexer(BaseIndexer):
     def build_index(self, embeddings: List[List[float]], metadata: List[Dict[str, Any]]) -> None:
         data = np.array(embeddings).astype(np.float32)
         num_elements = len(data)
-        
+
         # Initializing index
         # max_elements: max number of elements in the index
         # ef_construction: defines a construction time/accuracy trade-off
         # M: the number of bi-directional links created for every new element during construction
         self.index.init_index(max_elements=num_elements, ef_construction=200, M=16)
-        
+
         # Adding data
         ids = np.arange(num_elements)
         self.index.add_items(data, ids)
-        
+
         self.metadata = metadata
         # Save to track size
         self.index.save_index(self.temp_file.name)
@@ -39,9 +39,9 @@ class HNSWLibIndexer(BaseIndexer):
         query = np.array([query_embedding]).astype(np.float32)
         # ef: defines a query time accuracy/speed trade-off
         self.index.set_ef(50)
-        
+
         labels, distances = self.index.knn_query(query, k=top_k)
-        
+
         results = []
         for idx, dist in zip(labels[0], distances[0]):
             results.append((self.metadata[int(idx)], float(dist)))

@@ -1,4 +1,5 @@
 import numpy as np
+
 from embenx import Collection
 
 
@@ -26,6 +27,7 @@ def run_usearch_example():
     col_i8 = Collection(dimension=dim, indexer_type="usearch-i8")
     col_i8.add(vectors, metadata)
     print(f" Size: {col_i8.indexer.get_size() / 1024:.2f} KB")
+
 
 if __name__ == "__main__":
     run_usearch_example()

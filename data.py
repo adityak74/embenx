@@ -12,31 +12,37 @@ ZOO_MAP = {
     "ms-marco": "https://huggingface.co/datasets/adityak74/embenx-zoo/resolve/main/msmarco.parquet",
 }
 
+
 def load_from_zoo(dataset_name: str, cache_dir: str = ".embenx_cache") -> Collection:
     """
     Download and load a pre-built collection from the Embenx Retrieval Zoo.
     """
     if dataset_name not in ZOO_MAP:
-        raise ValueError(f"Dataset '{dataset_name}' not found in zoo. Available: {list(ZOO_MAP.keys())}")
-        
+        raise ValueError(
+            f"Dataset '{dataset_name}' not found in zoo. Available: {list(ZOO_MAP.keys())}"
+        )
+
     url = ZOO_MAP[dataset_name]
     os.makedirs(cache_dir, exist_ok=True)
     local_path = os.path.join(cache_dir, f"{dataset_name}.parquet")
-    
+
     if not os.path.exists(local_path):
         import requests
+
         print(f"Downloading {dataset_name} from Embenx Zoo...")
         response = requests.get(url, stream=True)
         response.raise_for_status()
         with open(local_path, "wb") as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
-                
+
     return Collection.from_parquet(local_path)
+
 
 def list_zoo() -> list:
     """List all available pre-built collections in the zoo."""
     return list(ZOO_MAP.keys())
+
 
 def load_documents(
     dataset_name: str, subset: str = "default", split: str = "train", max_docs: int = 100
@@ -52,6 +58,7 @@ def load_documents(
                 docs = data if isinstance(data, list) else [data]
         elif dataset_name.endswith(".parquet"):
             import pandas as pd
+
             df = pd.read_parquet(dataset_name)
             docs = df.to_dict(orient="records")
         else:
@@ -61,6 +68,7 @@ def load_documents(
     # Hugging Face fallback
     try:
         from datasets import load_dataset
+
         ds = load_dataset(dataset_name, subset, split=split, streaming=True)
         docs = []
         for i, doc in enumerate(ds):
@@ -70,6 +78,7 @@ def load_documents(
         return docs
     except Exception as e:
         raise RuntimeError(f"Failed to load dataset {dataset_name}: {e}")
+
 
 def save_collection(collection: Collection, path: str):
     """

@@ -60,7 +60,7 @@ def info():
                 import weaviate
             elif name == "pgvector":
                 import psycopg2
-            
+
             table.add_row(name, "[green]✓ Ready[/green]")
         except ImportError:
             table.add_row(name, "[red]✖ Missing[/red]")
@@ -108,9 +108,13 @@ def benchmark(
     text_col: str = typer.Option("text", "--text-col", "-t", help="Column containing text."),
     vector_col: str = typer.Option("vector", "--vector-col", help="Column containing vectors."),
     max_docs: int = typer.Option(100, "--max-docs", "-n", help="Maximum documents to index."),
-    indexers: str = typer.Option("faiss,simple", "--indexers", "-i", help="Comma-separated list of indexers."),
+    indexers: str = typer.Option(
+        "faiss,simple", "--indexers", "-i", help="Comma-separated list of indexers."
+    ),
     top_k: int = typer.Option(5, help="Number of neighbors to search."),
-    custom_indexer: Optional[str] = typer.Option(None, "--custom-indexer", help="Path to custom indexer script."),
+    custom_indexer: Optional[str] = typer.Option(
+        None, "--custom-indexer", help="Path to custom indexer script."
+    ),
     report: bool = typer.Option(False, help="Generate a Markdown report."),
     model: str = typer.Option("ollama/nomic-embed-text", help="Embedding model."),
 ):
@@ -123,7 +127,7 @@ def benchmark(
 
     console.print("Run Embenx benchmarks")
     console.print("[bold green]Starting Embenx Benchmark...[/bold green]")
-    
+
     # Matching original signature: run_benchmark(dataset_name, split, text_column, max_docs, indexer_names, model_name, console, ...)
     results = run_benchmark(
         dataset if not path else path,
@@ -134,9 +138,9 @@ def benchmark(
         model,
         console,
         custom_indexer_script=custom_indexer,
-        subset=subset
+        subset=subset,
     )
-    
+
     if report and results:
         path = generate_report(results, dataset if not path else path)
         console.print(f"[bold green]✓ Report generated: {path}[/bold green]")
@@ -153,12 +157,12 @@ def grand_benchmark(
     """
     from benchmark import generate_report, run_benchmark
     from data import list_zoo
-    
+
     datasets = list_zoo()
     all_results = []
-    
+
     indexer_list = indexers.split(",") if indexers != "all" else None
-    
+
     for ds in datasets:
         console.print(f"\n[bold magenta]>>> Benchmarking Zoo Dataset: {ds}[/bold magenta]")
         res = run_benchmark(ds, "train", "text", max_docs, indexer_list, model, console)
@@ -166,7 +170,7 @@ def grand_benchmark(
             for r in res:
                 r["Dataset"] = ds
             all_results.extend(res)
-            
+
     if all_results:
         path = generate_report(all_results, " Retrieval Zoo (Grand)")
         console.print(f"\n[bold green]✓ Grand Technical Report generated: {path}[/bold green]")
@@ -189,6 +193,7 @@ def cleanup():
             try:
                 if os.path.isdir(f):
                     import shutil
+
                     shutil.rmtree(f)
                 else:
                     os.remove(f)
@@ -222,6 +227,7 @@ def mcp_start():
     Start the Embenx MCP server for agentic tool-use.
     """
     import asyncio
+
     console.print("[bold green]Starting Embenx MCP Server...[/bold green]")
     console.print("[cyan]Connect your agent (Claude Desktop, etc.) via stdio.[/cyan]")
     asyncio.run(run())
@@ -233,6 +239,7 @@ def explorer():
     Launch the Embenx Explorer web UI to visualize collections.
     """
     import subprocess
+
     console.print("[bold green]Launching Embenx Explorer...[/bold green]")
     try:
         subprocess.run(["streamlit", "run", "explorer.py"], check=True)
@@ -248,6 +255,7 @@ def zoo_list():
     List all available pre-indexed collections in the Embenx Retrieval Zoo.
     """
     from data import list_zoo
+
     datasets = list_zoo()
     console.print("[bold cyan]Embenx Retrieval Zoo[/bold cyan]")
     for ds in datasets:
@@ -260,6 +268,7 @@ def zoo_load(name: str):
     Download and load a collection from the Embenx Retrieval Zoo.
     """
     from data import load_from_zoo
+
     try:
         console.print(f"[yellow]Loading {name} from zoo...[/yellow]")
         col = load_from_zoo(name)
@@ -275,6 +284,7 @@ def list_indexers():
     List available indexing libraries for benchmarking.
     """
     from indexers import get_indexer_map
+
     indexer_map = get_indexer_map()
     console.print("[bold cyan]Available Indexers:[/bold cyan]")
     for name in indexer_map.keys():
@@ -294,8 +304,10 @@ def check():
     console.print("[bold cyan]Dependency Check:[/bold cyan]")
     for name in indexer_map.keys():
         try:
-            if name == "faiss": import faiss
-            elif name == "usearch": import usearch
+            if name == "faiss":
+                import faiss
+            elif name == "usearch":
+                import usearch
             console.print(f" - {name}: [green]Installed[/green]")
         except ImportError:
             console.print(f" - {name}: [yellow]Not found[/yellow]")

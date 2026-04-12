@@ -7,6 +7,7 @@ import pandas as pd
 from sklearn.cluster import KMeans
 
 from indexers import BaseIndexer, get_indexer_map
+from rerank import RerankHandler
 
 try:
     from safetensors.numpy import load_file, save_file
@@ -106,9 +107,9 @@ class Collection:
         # Use a list of buffers for O(1) append instead of O(N) vstack
         self._vector_buffer.append(vectors)
         self._metadata.extend(meta)
-        
+
         # Lazy consolidation - only vstack when specifically needed
-        self._consolidated_vectors = None # Invalidated
+        self._consolidated_vectors = None  # Invalidated
 
     def add_batch(
         self,
@@ -119,7 +120,7 @@ class Collection:
     ):
         """
         Add vectors and metadata to the collection in batches to manage memory and provide progress updates.
-        
+
         Args:
             vectors: Large array or list of vectors.
             metadata: Optional list of metadata dictionaries.
@@ -128,20 +129,25 @@ class Collection:
         """
         num_items = len(vectors)
         meta = metadata or [{} for _ in range(num_items)]
-        
+
         indices = range(0, num_items, batch_size)
         if show_progress:
             try:
                 from tqdm import tqdm
-                indices = tqdm(indices, desc=f"Adding to {self.name}", total=(num_items + batch_size - 1) // batch_size)
+
+                indices = tqdm(
+                    indices,
+                    desc=f"Adding to {self.name}",
+                    total=(num_items + batch_size - 1) // batch_size,
+                )
             except ImportError:
                 pass
-                
+
         for i in indices:
             batch_vectors = vectors[i : i + batch_size]
             batch_meta = meta[i : i + batch_size]
             self.add(batch_vectors, batch_meta)
-        
+
         # Auto-flush after batch add
         self.flush()
 
@@ -151,25 +157,33 @@ class Collection:
             if self._consolidated_vectors is None:
                 self._consolidated_vectors = np.vstack(self._vector_buffer)
             else:
-                self._consolidated_vectors = np.vstack([self._consolidated_vectors] + self._vector_buffer)
+                self._consolidated_vectors = np.vstack(
+                    [self._consolidated_vectors] + self._vector_buffer
+                )
             self._vector_buffer = []
 
     def _get_vectors(self) -> np.ndarray:
         """Helper to get consolidated vectors, flushing if necessary."""
-        return self._vectors # Uses property
+        return self._vectors  # Uses property
 
-    def add_images(self, image_paths: List[str], model: str = "openai/clip-vit-base-patch32", metadata: Optional[List[Dict[str, Any]]] = None):
+    def add_images(
+        self,
+        image_paths: List[str],
+        model: str = "openai/clip-vit-base-patch32",
+        metadata: Optional[List[Dict[str, Any]]] = None,
+    ):
         """
         Embed and add images to the collection.
         """
         from llm import Embedder
+
         emb = Embedder(model)
-        vectors = emb.embed_texts(image_paths) 
-        
+        vectors = emb.embed_texts(image_paths)
+
         meta = metadata or [{} for _ in range(len(image_paths))]
         for i, path in enumerate(image_paths):
             meta[i]["image_path"] = path
-            
+
         self.add(vectors, meta)
 
     def search(
@@ -222,11 +236,14 @@ class Collection:
         else:
             return [_process_single(q) for q in query_vec]
 
-    def search_image(self, image_path: str, model: str = "openai/clip-vit-base-patch32", top_k: int = 5) -> List[Tuple[Dict[str, Any], float]]:
+    def search_image(
+        self, image_path: str, model: str = "openai/clip-vit-base-patch32", top_k: int = 5
+    ) -> List[Tuple[Dict[str, Any], float]]:
         """
         Search for similar items using an image query.
         """
         from llm import Embedder
+
         emb = Embedder(model)
         q_vec = emb.embed_query(image_path)
         return self.search(q_vec, top_k=top_k)
@@ -412,54 +429,57 @@ class Collection:
             "samples": n_samples,
         }
 
-    def export_to_production(self, backend: str, connection_url: str, collection_name: Optional[str] = None):
+    def export_to_production(
+        self, backend: str, connection_url: str, collection_name: Optional[str] = None
+    ):
         """
         One-click export from local Embenx collection to production clusters.
         Supported backends: 'qdrant', 'milvus'.
         """
         if self._vectors is None:
             raise RuntimeError("Collection is empty. Add data before exporting.")
-            
+
         name = collection_name or self.name
-        
+
         if backend.lower() == "qdrant":
             from qdrant_client import QdrantClient
             from qdrant_client.http import models
-            
+
             client = QdrantClient(url=connection_url)
             client.recreate_collection(
                 collection_name=name,
-                vectors_config=models.VectorParams(size=self.dimension, distance=models.Distance.COSINE),
+                vectors_config=models.VectorParams(
+                    size=self.dimension, distance=models.Distance.COSINE
+                ),
             )
-            
+
             client.upload_collection(
-                collection_name=name,
-                vectors=self._vectors,
-                payload=self._metadata,
-                ids=None
+                collection_name=name, vectors=self._vectors, payload=self._metadata, ids=None
             )
-            print(f"Successfully exported {len(self._vectors)} vectors to Qdrant at {connection_url}")
+            print(
+                f"Successfully exported {len(self._vectors)} vectors to Qdrant at {connection_url}"
+            )
 
         elif backend.lower() == "milvus":
             from pymilvus import Collection as MilvusCollection
             from pymilvus import CollectionSchema, DataType, FieldSchema, connections
-            
+
             connections.connect(alias="default", uri=connection_url)
-            
+
             fields = [
                 FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
-                FieldSchema(name="vector", dtype=DataType.FLOAT_VECTOR, dim=self.dimension)
+                FieldSchema(name="vector", dtype=DataType.FLOAT_VECTOR, dim=self.dimension),
             ]
             schema = CollectionSchema(fields, f"Embenx export of {name}")
             mc = MilvusCollection(name, schema)
-            
+
             # Milvus usually needs flat list for insert
-            entities = [
-                self._vectors.tolist()
-            ]
+            entities = [self._vectors.tolist()]
             mc.insert(entities)
             mc.flush()
-            print(f"Successfully exported {len(self._vectors)} vectors to Milvus at {connection_url}")
+            print(
+                f"Successfully exported {len(self._vectors)} vectors to Milvus at {connection_url}"
+            )
         else:
             raise ValueError(f"Export to backend '{backend}' not supported yet.")
 
@@ -513,20 +533,21 @@ class Collection:
         Generate synthetic search queries for documents in the collection using an LLM.
         Supports local Ollama/vLLM via api_base and llm_kwargs.
         """
-        from llm import Generator
         import random
 
+        from llm import Generator
+
         generator = Generator(model_name=model, api_base=api_base, **llm_kwargs)
-        
+
         valid_docs = [m for m in self._metadata if m.get(text_key)]
         if not valid_docs:
             return []
-            
+
         sample_size = min(num_docs, len(valid_docs))
         sampled_docs = random.sample(valid_docs, sample_size)
-        
+
         results = []
-        for i, doc in enumerate(sampled_docs):
+        for _i, doc in enumerate(sampled_docs):
             text = doc[text_key]
             if custom_prompt:
                 prompt = custom_prompt.format(text=text, n=n_queries_per_doc)
@@ -537,21 +558,19 @@ class Collection:
                     f"Return ONLY the queries, one per line, without numbering or bullets.\n\n"
                     f"Document: {text}"
                 )
-                
+
             response = generator.generate(prompt)
             if not response:
                 continue
-                
-            lines = [q.lstrip("- *1234567890.\t").strip() for q in response.split("\n") if q.strip()]
+
+            lines = [
+                q.lstrip("- *1234567890.\t").strip() for q in response.split("\n") if q.strip()
+            ]
             queries = [q for q in lines if q]
-            
+
             for q in queries[:n_queries_per_doc]:
-                results.append({
-                    "query": q,
-                    "doc_id": doc.get("id"),
-                    "doc_text": text
-                })
-                
+                results.append({"query": q, "doc_id": doc.get("id"), "doc_text": text})
+
         if output_path and results:
             df = pd.DataFrame(results)
             if output_path.endswith(".parquet"):
@@ -560,7 +579,7 @@ class Collection:
                 df.to_json(output_path, orient="records", lines=True)
             elif output_path.endswith(".csv"):
                 df.to_csv(output_path, index=False)
-                
+
         return results
 
     def to_parquet(self, path: str, vector_col: str = "vector"):
@@ -588,7 +607,7 @@ class CacheCollection(Collection):
         vectors: Union[np.ndarray, List[List[float]]],
         activations: Dict[str, np.ndarray],
         metadata: Optional[List[Dict[str, Any]]] = None,
-        quantize: bool = False
+        quantize: bool = False,
     ):
         """
         Add embeddings and their associated KV cache activations.
@@ -605,12 +624,14 @@ class CacheCollection(Collection):
             cache_path = os.path.join(f"cache_{self.name}", f"{cache_id}.safetensors")
 
             doc_activations = {k: v[i] for k, v in activations.items()}
-            
+
             if quantize:
                 # Simple 1-bit quantization (sign-based) as per TurboQuant concepts
-                doc_activations = {k: np.sign(v).astype(np.int8) for k, v in doc_activations.items()}
+                doc_activations = {
+                    k: np.sign(v).astype(np.int8) for k, v in doc_activations.items()
+                }
                 m["quantized"] = True
-                
+
             save_file(doc_activations, cache_path)
             m["cache_path"] = cache_path
 
@@ -684,7 +705,7 @@ class ClusterCollection(Collection):
         super().__init__(**kwargs)
         self.n_clusters = n_clusters
         self.kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-        self.cluster_map = {} # cluster_id -> list of indices
+        self.cluster_map = {}  # cluster_id -> list of indices
 
     def cluster_data(self):
         """
@@ -692,45 +713,47 @@ class ClusterCollection(Collection):
         """
         if self._vectors is None or len(self._vectors) < self.n_clusters:
             return
-            
+
         cluster_labels = self.kmeans.fit_predict(self._vectors)
-        
+
         self.cluster_map = {}
         for i, label in enumerate(cluster_labels):
             label = int(label)
             if label not in self.cluster_map:
                 self.cluster_map[label] = []
             self.cluster_map[label].append(i)
-            
+
         # Update metadata with cluster info
         for i, label in enumerate(cluster_labels):
             self._metadata[i]["cluster_id"] = int(label)
 
-    def search_clustered(self, query: np.ndarray, top_k: int = 5) -> List[Tuple[Dict[str, Any], float]]:
+    def search_clustered(
+        self, query: np.ndarray, top_k: int = 5
+    ) -> List[Tuple[Dict[str, Any], float]]:
         """
         Search for vectors by first identifying the most relevant cluster.
         """
         if self._vectors is None:
             return []
-            
+
         # 1. Identify nearest cluster
         query_vec = np.array(query).reshape(1, -1).astype(np.float32)
         cluster_id = int(self.kmeans.predict(query_vec)[0])
-        
+
         # 2. Retrieve indices for this cluster
         indices = self.cluster_map.get(cluster_id, [])
         if not indices:
             return self.search(query, top_k=top_k)
-            
+
         # 3. Brute force within cluster (simulating ClusterKV pattern)
         cluster_vectors = self._vectors[indices]
         cluster_metadata = [self._metadata[i] for i in indices]
-        
+
         # Simple cosine similarity within cluster
         norms = np.linalg.norm(cluster_vectors, axis=1) * np.linalg.norm(query)
         norms[norms == 0] = 1.0
         similarities = np.dot(cluster_vectors, query.flatten()) / norms
-        
+
         results_idx = np.argsort(similarities)[::-1][:top_k]
         return [(cluster_metadata[i], 1.0 - float(similarities[i])) for i in results_idx]
 
@@ -753,35 +776,35 @@ class SpatialCollection(Collection):
         meta = metadata or [{} for _ in range(len(vectors))]
         for i, m in enumerate(meta):
             m["coords"] = coords[i].tolist()
-        
+
         self.add(vectors, meta)
 
     def search_spatial(
-        self, 
-        query_vector: np.ndarray, 
-        current_coords: np.ndarray, 
+        self,
+        query_vector: np.ndarray,
+        current_coords: np.ndarray,
         top_k: int = 5,
-        spatial_radius: float = 10.0
+        spatial_radius: float = 10.0,
     ) -> List[Tuple[Dict[str, Any], float]]:
         """
         Spatial-aware search that favors episodic memories near the current location.
         """
         # 1. Perform semantic search first
         results = self.search(query_vector, top_k=top_k * 2)
-        
+
         spatial_results = []
         for meta, sem_dist in results:
             item_coords = np.array(meta.get("coords", [0, 0, 0]))
             # Euclidean distance in 3D space
             euc_dist = np.linalg.norm(item_coords - current_coords)
-            
+
             # Spatial gating (ESWM pattern)
             if euc_dist <= spatial_radius:
                 # Combine semantic distance and spatial proximity
                 # Higher weight to spatial proximity if needed
                 combined_score = sem_dist * (1.0 + (euc_dist / spatial_radius))
                 spatial_results.append((meta, float(combined_score)))
-        
+
         # Sort by combined score
         spatial_results.sort(key=lambda x: x[1])
         return spatial_results[:top_k]
@@ -804,11 +827,11 @@ class TemporalCollection(Collection):
         """
         if timestamps is None:
             timestamps = [time.time()] * len(vectors)
-            
+
         meta = metadata or [{} for _ in range(len(vectors))]
         for i, m in enumerate(meta):
             m["timestamp"] = float(timestamps[i])
-            
+
         self.add(vectors, meta)
 
     def search_temporal(
@@ -825,31 +848,31 @@ class TemporalCollection(Collection):
         # 1. Semantic search
         # Pass the where filter down to the base search if supported or apply here
         results = self.search(query_vector, top_k=top_k * 5, where=where)
-        
+
         current_time = time.time()
         temporal_results = []
-        
+
         for meta, sem_dist in results:
             ts = meta.get("timestamp", 0.0)
-            
+
             # 2. Time window filtering
             if time_window:
                 if not (time_window[0] <= ts <= time_window[1]):
                     continue
-            
+
             # 3. Recency scoring (normalized time difference)
             # Smaller diff = more recent = higher boost
             time_diff = max(0, current_time - ts)
             # Simple decay: 1 / (1 + log(1 + time_diff))
             recency_score = 1.0 / (1.0 + np.log1p(time_diff))
-            
+
             # Combined score (Distance is lower-better, Recency is higher-better)
             # We convert recency to a 'temporal distance': 1 - recency
             temporal_dist = 1.0 - recency_score
             combined_score = (sem_dist * (1.0 - recency_weight)) + (temporal_dist * recency_weight)
-            
+
             temporal_results.append((meta, float(combined_score)))
-            
+
         temporal_results.sort(key=lambda x: x[1])
         return temporal_results[:top_k]
 
@@ -862,32 +885,32 @@ class AgenticCollection(Collection):
 
     def feedback(self, doc_id: str, label: str = "good"):
         """
-        Provide feedback on a retrieval result. 
+        Provide feedback on a retrieval result.
         Adjusts metadata to influence future rankings.
         """
-        for i, m in enumerate(self._metadata):
+        for _i, m in enumerate(self._metadata):
             if m.get("id") == doc_id:
                 if "feedback_score" not in m:
                     m["feedback_score"] = 0.0
-                
+
                 if label == "good":
-                    m["feedback_score"] += 0.5 # Stronger boost
+                    m["feedback_score"] += 0.5  # Stronger boost
                 elif label == "bad":
-                    m["feedback_score"] -= 0.5 # Stronger demote
+                    m["feedback_score"] -= 0.5  # Stronger demote
                 break
 
     def agentic_search(
         self,
         query_vector: np.ndarray,
         top_k: int = 5,
-        feedback_weight: float = 1.0 # High default for testing
+        feedback_weight: float = 1.0,  # High default for testing
     ) -> List[Tuple[Dict[str, Any], float]]:
         """
         Search with additive self-healing logic using stored feedback scores.
         """
         # Initial search
         results = self.search(query_vector, top_k=top_k * 3)
-        
+
         agentic_results = []
         for meta, dist in results:
             # We must fetch the latest feedback from self._metadata
@@ -898,14 +921,14 @@ class AgenticCollection(Collection):
                 if m.get("id") == doc_id:
                     actual_meta = m
                     break
-            
+
             fb_score = actual_meta.get("feedback_score", 0.0)
-            
+
             # Adjusted distance: positive feedback REDUCES distance (boosts result)
             # Additive shift ensures even exact matches (dist=0) can be demoted.
             adjusted_dist = dist - (fb_score * feedback_weight)
             agentic_results.append((actual_meta, float(adjusted_dist)))
-            
+
         agentic_results.sort(key=lambda x: x[1])
         return agentic_results[:top_k]
 
@@ -914,12 +937,13 @@ class Session:
     """
     Managed agentic session with automatic temporal decay and persistence.
     """
+
     def __init__(self, session_id: str, dimension: int, storage_dir: str = ".embenx_sessions"):
         self.session_id = session_id
         self.storage_dir = storage_dir
         self.path = os.path.join(storage_dir, f"{session_id}.parquet")
         os.makedirs(storage_dir, exist_ok=True)
-        
+
         # Initialize with TemporalCollection for time-based features
         if os.path.exists(self.path):
             self.collection = TemporalCollection.from_parquet(self.path)
@@ -935,11 +959,15 @@ class Session:
         self.collection.add_temporal([vector], metadata=[meta])
         self.collection.to_parquet(self.path)
 
-    def retrieve_context(self, query_vector: np.ndarray, top_k: int = 5, recency_weight: float = 0.4):
+    def retrieve_context(
+        self, query_vector: np.ndarray, top_k: int = 5, recency_weight: float = 0.4
+    ):
         """
         Retrieve relevant context from the session with recency bias.
         """
-        return self.collection.search_temporal(query_vector, top_k=top_k, recency_weight=recency_weight)
+        return self.collection.search_temporal(
+            query_vector, top_k=top_k, recency_weight=recency_weight
+        )
 
     def cleanup(self):
         """Delete session data."""

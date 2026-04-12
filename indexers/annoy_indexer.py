@@ -18,7 +18,7 @@ class AnnoyIndexer(BaseIndexer):
     def build_index(self, embeddings: List[List[float]], metadata: List[Dict[str, Any]]) -> None:
         for i, emb in enumerate(embeddings):
             self.index.add_item(i, emb)
-        
+
         # Build 10 trees by default
         self.index.build(10)
         self.metadata = metadata
@@ -31,7 +31,7 @@ class AnnoyIndexer(BaseIndexer):
         indices, distances = self.index.get_nns_by_vector(
             query_embedding, top_k, include_distances=True
         )
-        
+
         results = []
         for idx, dist in zip(indices, distances):
             results.append((self.metadata[idx], float(dist)))

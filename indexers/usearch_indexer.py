@@ -28,7 +28,7 @@ class USearchIndexer(BaseIndexer):
             vectors = np.array(embeddings).astype(np.float16)
         else:
             vectors = np.array(embeddings).astype(np.float32)
-            
+
         ids = np.arange(len(vectors))
         self.index.add(ids, vectors)
         self.metadata = metadata
@@ -43,9 +43,9 @@ class USearchIndexer(BaseIndexer):
             query = np.array(query_embedding).astype(np.float16)
         else:
             query = np.array(query_embedding).astype(np.float32)
-            
+
         matches = self.index.search(query, top_k)
-        
+
         results = []
         for match in matches:
             idx = int(match.key)
