@@ -54,5 +54,16 @@ def run_db_examples():
     except Exception as e:
         print(f" Elasticsearch failed (is it running?): {e}")
 
+    # 5. OpenSearch
+    # Requires a local instance at http://localhost:9200
+    print("\n5. Benchmarking OpenSearch...")
+    try:
+        col_os = Collection(dimension=dim, indexer_type="opensearch")
+        col_os.add(vectors, metadata)
+        res = col_os.search(vectors[0], top_k=2)
+        print(f" OpenSearch result: {res[0][0]['text']}")
+    except Exception as e:
+        print(f" OpenSearch failed (is it running?): {e}")
+
 if __name__ == "__main__":
     run_db_examples()
