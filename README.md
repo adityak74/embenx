@@ -2,7 +2,7 @@
 
 <img src="embenx.png" alt="Embenx Logo" width="200"/>
 
-<h1>Embenx 🚀</h1>
+<h1>Embenx — Agentic Memory Layer for Python AI Agents 🚀</h1>
 
 <p>
   <strong>The Agentic Memory Layer & Universal Retrieval Toolkit.</strong><br/>
@@ -19,8 +19,14 @@
 </p>
 
 <p>
-  <a href="https://adityak74.github.io/embenx/">Documentation</a> ·
-  <a href="https://github.com/adityak74/embenx/issues">Report Bug</a> ·
+  <a href="https://pypi.org/project/embenx/"><img src="https://img.shields.io/pypi/v/embenx?style=flat-square&color=blue" alt="PyPI Version"/></a>
+  <a href="https://pypi.org/project/embenx/"><img src="https://img.shields.io/pypi/dw/embenx?style=flat-square&color=brightgreen" alt="PyPI Weekly Downloads"/></a>
+</p>
+
+<p>
+  <strong><a href="https://adityak74.github.io/embenx/">📖 Read the Docs</a></strong> &nbsp;·&nbsp;
+  <a href="https://adityak74.github.io/embenx/">Explore the Visual UI</a> &nbsp;·&nbsp;
+  <a href="https://github.com/adityak74/embenx/issues">Report Bug</a> &nbsp;·&nbsp;
   <a href="https://github.com/adityak74/embenx/issues">Request Feature</a>
 </p>
 
@@ -31,6 +37,41 @@
 ## What is Embenx?
 
 Embenx is a Python-native retrieval library that sits between raw vector indices and full-blown vector databases. It provides a high-level `Collection` API for managing embeddings and metadata, supporting advanced features like **filtering**, **reranking**, and **quantization** across 15+ backends.
+
+## Quickstart
+
+Get up and running in 60 seconds.
+
+**Step 1 — Install**
+```bash
+pip install embenx
+```
+
+**Step 2 — Create a collection and add embeddings**
+```python
+import numpy as np
+from embenx import Collection
+
+# 768-dim FAISS-HNSW index (in-memory, no extra config needed)
+col = Collection(dimension=768, indexer_type="faiss-hnsw")
+
+vectors = np.random.rand(10, 768).astype("float32")
+metadata = [{"id": i, "text": f"Document {i}"} for i in range(10)]
+col.add(vectors, metadata)
+```
+
+**Step 3 — Search**
+```python
+query = np.random.rand(768).astype("float32")
+results = col.search(query, top_k=3)
+
+for meta, dist in results:
+    print(f"{meta['text']}  (distance: {dist:.4f})")
+```
+
+> For filtering, reranking, hybrid search, and production export, see [Library Usage](#library-usage) or the [full docs](https://adityak74.github.io/embenx/).
+
+---
 
 ## Library Usage
 
@@ -81,9 +122,14 @@ embenx mcp-start
 
 Embenx provides a built-in web UI to visualize your vector collections, including an interactive **HNSW Graph Visualizer** and a **RAG Playground**.
 
+<!-- TODO: Add HNSW visualizer GIF here -->
+
 ```bash
 embenx explorer
 ```
+
+> **[Open the Explorer UI →](https://adityak74.github.io/embenx/visual.html)**  
+> Launch the visual dashboard, explore HNSW graph layers, run a RAG Playground session, and inspect cluster distributions — all from your browser.
 
 ## Synthetic Data Generation 🧪
 
@@ -128,14 +174,32 @@ results = col.generate_synthetic_queries(
 
 ## Supported Indexers
 
-| Indexer | Family | Best For |
+Embenx registers **22 indexer keys** across **12 backend families** out of the box.
+
+| Indexer Key | Family / Algorithm | Best For |
 | :--- | :--- | :--- |
-| `faiss` | HNSW, IVF, Flat | Production-grade local search |
-| `scann` | Tree-AH | State-of-the-art speed/recall (Linux) |
-| `usearch` | HNSW | High-performance C++, low latency |
-| `pgvector` | Postgres | Embeddings next to relational data |
-| `lancedb` | Columnar | Large disk-based datasets |
-| `simple` | NumPy | Exact search baseline |
+| `faiss` | FAISS Flat | Exact baseline (GPU-ready) |
+| `faiss-ivf` | FAISS IVF | Large-scale approximate search |
+| `faiss-hnsw` | FAISS HNSW | High-recall in-memory search |
+| `faiss-sq8` | FAISS SQ8 | Quantized, memory-efficient search |
+| `faiss-pq` | FAISS PQ | Ultra-compressed approximate search |
+| `scann` | ScaNN Tree-AH | State-of-the-art speed/recall (Linux) |
+| `usearch` | USearch HNSW (f32) | High-performance C++, low latency |
+| `usearch-f16` | USearch HNSW (f16) | Half-precision, memory-efficient |
+| `usearch-i8` | USearch HNSW (i8) | Integer quantized, minimal RAM |
+| `hnswlib` | HNSWLib | Pure HNSW, easy to tune |
+| `annoy` | Annoy (Random Projections) | Read-heavy / static datasets |
+| `pgvector` | PostgreSQL pgvector | Embeddings next to relational data |
+| `lance` | LanceDB Columnar | Large disk-based datasets |
+| `milvus` | Milvus Cluster | Distributed production workloads |
+| `qdrant` | Qdrant | Filtered vector search at scale |
+| `chroma` | ChromaDB | Lightweight local development |
+| `weaviate` | Weaviate | Multi-tenant, schema-driven search |
+| `duckdb` | DuckDB | Analytical + vector hybrid queries |
+| `elasticsearch` | Elasticsearch | Full-text + vector search combined |
+| `vespa` | Vespa | Real-time ranking & serving |
+| `bm25` | BM25 (sparse) | Keyword / sparse retrieval baseline |
+| `simple` | NumPy Exact | Exact search, zero dependencies |
 
 ## Installation
 
