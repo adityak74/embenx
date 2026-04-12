@@ -30,25 +30,27 @@ def get_indexer_map():
         "pgvector": ("indexers.pgvector_indexer", "PGVectorIndexer", {}),
         "bm25": ("indexers.bm25_indexer", "BM25Indexer", {}),
     }
-    
+
     indexer_map = {}
     for name, config in indexers.items():
         module_path, class_name, kwargs = config
         try:
             module = importlib.import_module(module_path)
             cls = getattr(module, class_name)
-            
+
             # If there are kwargs, we return a factory function or a partial
             if kwargs:
                 import functools
+
                 indexer_map[name] = functools.partial(cls, **kwargs)
             else:
                 indexer_map[name] = cls
-                
+
         except (ImportError, ModuleNotFoundError):
             continue
-            
+
     return indexer_map
+
 
 __all__ = [
     "BaseIndexer",

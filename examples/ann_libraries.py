@@ -1,4 +1,5 @@
 import numpy as np
+
 from embenx import Collection
 
 
@@ -43,6 +44,7 @@ def run_ann_examples():
     col_qdrant.add(vectors, metadata)
     res = col_qdrant.search(vectors[0], top_k=2)
     print(f" Qdrant result: {res[0][0]['text']}")
+
 
 if __name__ == "__main__":
     run_ann_examples()

@@ -1,4 +1,5 @@
 import numpy as np
+
 from embenx import Collection
 
 
@@ -40,6 +41,7 @@ def run_complex_examples():
     col_vespa.add(vectors, metadata)
     res = col_vespa.search(vectors[0], top_k=2)
     print(f" Vespa result: {res[0][0]['text']}")
+
 
 if __name__ == "__main__":
     run_complex_examples()

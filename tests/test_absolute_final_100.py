@@ -11,6 +11,7 @@ from typer.testing import CliRunner
 def runner():
     return CliRunner()
 
+
 def test_the_absolute_100_percent_coverage(runner):
     import cli
     import core
@@ -27,25 +28,33 @@ def test_the_absolute_100_percent_coverage(runner):
     import indexers.weaviate_indexer
 
     # 1. Force top-level ImportErrors (hits scann 19, es 23, vespa 7, pgvector 25)
-    with patch.dict(sys.modules, {"scann": None, "elasticsearch": None, "vespa": None, "psycopg2": None}):
+    with patch.dict(
+        sys.modules, {"scann": None, "elasticsearch": None, "vespa": None, "psycopg2": None}
+    ):
         importlib.reload(indexers.scann_indexer)
-        with pytest.raises(ImportError): indexers.scann_indexer.ScaNNIndexer(10)
-        
+        with pytest.raises(ImportError):
+            indexers.scann_indexer.ScaNNIndexer(10)
+
         importlib.reload(indexers.elasticsearch_indexer)
-        with pytest.raises(ImportError): indexers.elasticsearch_indexer.ElasticsearchIndexer(10)
-        
+        with pytest.raises(ImportError):
+            indexers.elasticsearch_indexer.ElasticsearchIndexer(10)
+
         importlib.reload(indexers.vespa_indexer)
         assert indexers.vespa_indexer.VespaIndexer(10).name == "Vespa"
-        
+
         importlib.reload(indexers.pgvector_indexer)
-        with pytest.raises(ImportError): indexers.pgvector_indexer.PGVectorIndexer(10)
+        with pytest.raises(ImportError):
+            indexers.pgvector_indexer.PGVectorIndexer(10)
 
     # 2. cli.py (52, 54, 70, 147-148, 155, 241)
     with patch("benchmark.run_benchmark"):
         runner.invoke(cli.app, ["benchmark", "-d", "d", "-i", "faiss,chroma"])
         runner.invoke(cli.app, ["benchmark", "-d", "d", "-i", "all"])
-    with patch("glob.glob", return_value=["f1"]), patch("os.path.isdir", return_value=False), \
-         patch("os.remove", side_effect=Exception):
+    with (
+        patch("glob.glob", return_value=["f1"]),
+        patch("os.path.isdir", return_value=False),
+        patch("os.remove", side_effect=Exception),
+    ):
         runner.invoke(cli.app, ["cleanup"])
     with patch("glob.glob", return_value=[]):
         runner.invoke(cli.app, ["cleanup"])
@@ -53,20 +62,22 @@ def test_the_absolute_100_percent_coverage(runner):
 
     # 3. data.py 37 & core.py 64
     with patch("numpy.load", side_effect=Exception):
-        with pytest.raises(RuntimeError): data.load_documents("err.npy", "s", "t", 10)
-    with pytest.raises(ValueError): core.Collection(dimension=10, indexer_type="ghost")
+        with pytest.raises(RuntimeError):
+            data.load_documents("err.npy", "s", "t", 10)
+    with pytest.raises(ValueError):
+        core.Collection(dimension=10, indexer_type="ghost")
 
     # 4. indexer edge logic
     # faiss 30, 80, 84-85, 91
     idx_f = indexers.faiss_indexer.FaissIndexer(10, "IVF1,Flat")
     idx_f.index = MagicMock()
     idx_f.index.search.return_value = (np.array([[0.1]]), np.array([[-1]]))
-    idx_f.search([0.1]*10)
+    idx_f.search([0.1] * 10)
     idx_f.index.search.return_value = (np.array([[0.1]]), np.array([[9999]]))
-    idx_f.search([0.1]*10)
+    idx_f.search([0.1] * 10)
     idx_f.index = None
     assert idx_f.get_size() == 0
-    
+
     # Cleanups
     with patch("os.path.exists", return_value=True), patch("os.remove"):
         indexers.annoy_indexer.AnnoyIndexer(10).cleanup()
@@ -74,11 +85,11 @@ def test_the_absolute_100_percent_coverage(runner):
         indexers.usearch_indexer.USearchIndexer(10).cleanup()
         with patch("indexers.milvus_indexer.MilvusClient"):
             indexers.milvus_indexer.MilvusIndexer(10).cleanup()
-            
+
     # milvus 39
     with patch("indexers.milvus_indexer.MilvusClient") as mc:
         mc.return_value.search.return_value = []
-        indexers.milvus_indexer.MilvusIndexer(10).search([0.1]*10)
+        indexers.milvus_indexer.MilvusIndexer(10).search([0.1] * 10)
 
     # Size fails
     with patch("indexers.pgvector_indexer.psycopg2"):
@@ -101,6 +112,7 @@ def test_the_absolute_100_percent_coverage(runner):
 
     # 5. indexers/__init__.py error handling
     from indexers import get_indexer_map
+
     with patch("importlib.import_module", side_effect=ImportError):
         res = get_indexer_map()
         assert res == {}

@@ -9,6 +9,7 @@ try:
 except ImportError:
     Image = None
 
+
 class Embedder:
     def __init__(self, model_name: str, batch_size: int = 32, truncate_dim: Optional[int] = None):
         """
@@ -30,7 +31,9 @@ class Embedder:
             batch = texts[i : i + self.batch_size]
             try:
                 # Basic check for image paths to trigger multimodal path
-                if all(os.path.exists(t) and (t.endswith('.jpg') or t.endswith('.png')) for t in batch):
+                if all(
+                    os.path.exists(t) and (t.endswith(".jpg") or t.endswith(".png")) for t in batch
+                ):
                     return self._embed_images(batch)
 
                 response = litellm.embedding(model=self.model_name, input=batch)
@@ -60,13 +63,13 @@ class Embedder:
         all_embeddings = []
         for path in paths:
             with open(path, "rb") as image_file:
-                encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
                 data_url = f"data:image/jpeg;base64,{encoded_string}"
-                
+
                 # Some models support 'input' as list of image urls
                 response = litellm.embedding(
                     model=self.model_name,
-                    input=[{"type": "image_url", "image_url": {"url": data_url}}]
+                    input=[{"type": "image_url", "image_url": {"url": data_url}}],
                 )
                 all_embeddings.append(response["data"][0]["embedding"])
         return all_embeddings
@@ -74,6 +77,7 @@ class Embedder:
     def embed_query(self, query: str) -> List[float]:
         embs = self.embed_texts([query])
         return embs[0] if embs else []
+
 
 class Generator:
     def __init__(self, model_name: str = "gpt-4o-mini", api_base: Optional[str] = None, **kwargs):
@@ -91,10 +95,9 @@ class Generator:
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
                 api_base=self.api_base,
-                **self.extra_kwargs
+                **self.extra_kwargs,
             )
             return response.choices[0].message.content
         except Exception as e:
             print(f"Error generating text for {self.model_name}: {e}")
             return ""
-

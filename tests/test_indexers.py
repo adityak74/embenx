@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from indexers.annoy_indexer import AnnoyIndexer
@@ -27,6 +26,7 @@ def test_faiss_indexer():
     assert results[0][0]["id"] == 0
     assert indexer.get_size() > 0
 
+
 def test_faiss_sq8_indexer():
     dim = 64
     indexer = FaissIndexer(dimension=dim, index_type="SQ8")
@@ -35,6 +35,7 @@ def test_faiss_sq8_indexer():
     indexer.build_index(embeddings, metadata)
     res = indexer.search(embeddings[0], top_k=1)
     assert len(res) == 1
+
 
 def test_faiss_pq_indexer():
     dim = 64
@@ -45,7 +46,8 @@ def test_faiss_pq_indexer():
     indexer.build_index(embeddings, metadata)
     res = indexer.search(embeddings[0], top_k=1)
     assert len(res) == 1
-    
+
+
 def test_faiss_ivf_indexer():
     dim = 64
     indexer = FaissIndexer(dimension=dim, index_type="IVF")
@@ -54,6 +56,7 @@ def test_faiss_ivf_indexer():
     indexer.build_index(embeddings, metadata)
     res = indexer.search(embeddings[0], top_k=1)
     assert len(res) == 1
+
 
 def test_duckdb_indexer():
     dim = 64
@@ -90,6 +93,7 @@ def test_usearch_indexer():
     assert indexer.get_size() > 0
     indexer.cleanup()
 
+
 def test_usearch_f16_indexer():
     dim = 64
     indexer = USearchIndexer(dimension=dim, dtype="f16")
@@ -100,6 +104,7 @@ def test_usearch_f16_indexer():
     assert len(res) == 1
     indexer.cleanup()
 
+
 def test_usearch_i8_indexer():
     dim = 64
     indexer = USearchIndexer(dimension=dim, dtype="i8")
@@ -109,6 +114,7 @@ def test_usearch_i8_indexer():
     res = indexer.search(embeddings[0], top_k=1)
     assert len(res) == 1
     indexer.cleanup()
+
 
 def test_simple_indexer():
     dim = 64
@@ -162,18 +168,26 @@ def test_hnswlib_indexer():
     assert indexer.get_size() > 0
     indexer.cleanup()
 
+
 def test_base_indexer_abstract():
     class Concrete(BaseIndexer):
-        def build_index(self, e, m): pass
-        def search(self, q, k): return []
-        def get_size(self): return 0
-    
+        def build_index(self, e, m):
+            pass
+
+        def search(self, q, k):
+            return []
+
+        def get_size(self):
+            return 0
+
     idx = Concrete("Test", 64)
     assert "Concrete(name='Test', dimension=64)" in repr(idx)
     idx.cleanup()
 
+
 def test_get_indexer_map_functional():
     from indexers import get_indexer_map
+
     res = get_indexer_map()
     assert "faiss" in res
     assert "simple" in res

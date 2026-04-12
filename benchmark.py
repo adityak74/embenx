@@ -42,7 +42,9 @@ def load_custom_indexer(script_path: str, console: Console):
         return None, None
 
 
-def benchmark_single_indexer(name, indexer_cls, dimension, embeddings, metadata, console, cleanup=True):
+def benchmark_single_indexer(
+    name, indexer_cls, dimension, embeddings, metadata, console, cleanup=True
+):
     console.print(f"\n[bold cyan]--- Benchmarking {name.upper()} ---[/bold cyan]")
     indexer = indexer_cls(dimension=dimension)
 
@@ -95,17 +97,18 @@ def run_benchmark(
     data_files: str = None,
     cleanup: bool = True,
     custom_indexer_script: str = None,
-    subset: str = "default", # Added as optional
+    subset: str = "default",  # Added as optional
 ):
     """
     Run Embenx benchmarks. Matches original signature for test compatibility.
     """
     # Load Data
     console.print(f"\n[bold]Loading up to {max_docs} documents from {dataset_name}...[/bold]")
-    
+
     # Check if dataset_name is actually a path (Parquet benchmark use case)
     if os.path.exists(dataset_name) and dataset_name.endswith(".parquet"):
         from core import Collection
+
         col = Collection.from_parquet(dataset_name)
         docs = col._metadata
         embeddings = col._vectors.tolist()
@@ -122,13 +125,15 @@ def run_benchmark(
         # Embed Data
         console.print(f"\n[bold]Generating embeddings using LiteLLM ({model_name})...[/bold]")
         embedder = Embedder(model_name)
-        
+
         text_field = text_column
-        if text_field not in docs[0] and "text" in docs[0]: text_field = "text"
-        elif text_field not in docs[0] and "content" in docs[0]: text_field = "content"
-        
+        if text_field not in docs[0] and "text" in docs[0]:
+            text_field = "text"
+        elif text_field not in docs[0] and "content" in docs[0]:
+            text_field = "content"
+
         texts = [d.get(text_field, str(d)) for d in docs]
-        
+
         t0 = time.perf_counter()
         embeddings = embedder.embed_texts(texts)
         emb_time = time.perf_counter() - t0
@@ -138,17 +143,21 @@ def run_benchmark(
             return
 
         dimension = len(embeddings[0])
-        console.print(f"Generated {len(embeddings)} embeddings of dimension {dimension} in {emb_time:.2f}s.")
+        console.print(
+            f"Generated {len(embeddings)} embeddings of dimension {dimension} in {emb_time:.2f}s."
+        )
 
     # Initialize Indexers
     indexers_map = get_indexer_map()
-    
+
     if custom_indexer_script:
         custom_name, custom_cls = load_custom_indexer(custom_indexer_script, console)
         if custom_cls:
             c_name_lower = custom_name.lower()
             indexers_map[c_name_lower] = custom_cls
-            console.print(f"[green]✓[/green] Successfully loaded custom indexer: [bold]{custom_name}[/bold]")
+            console.print(
+                f"[green]✓[/green] Successfully loaded custom indexer: [bold]{custom_name}[/bold]"
+            )
             if c_name_lower not in [x.lower() for x in indexer_names]:
                 indexer_names.append(c_name_lower)
 
@@ -191,18 +200,21 @@ def display_results(results, console):
         )
     console.print(table)
 
-def generate_report(results: List[Dict[str, Any]], dataset_name: str, output_path: str = "benchmark_report.md"):
+
+def generate_report(
+    results: List[Dict[str, Any]], dataset_name: str, output_path: str = "benchmark_report.md"
+):
     """
     Generate a formatted Markdown technical report from benchmark results.
     """
     import datetime
-    
+
     report = []
     report.append("# Embenx Retrieval Benchmark Report 🚀")
     report.append(f"Generated on: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     report.append(f"Dataset: **{dataset_name}**")
     report.append("\n## Executive Summary")
-    
+
     if not results:
         report.append("No results to report.")
     else:
@@ -210,30 +222,40 @@ def generate_report(results: List[Dict[str, Any]], dataset_name: str, output_pat
         query_times = [float(r["Query Time (ms)"]) for r in results]
         fastest_idx = query_times.index(min(query_times))
         fastest = results[fastest_idx]["Indexer"]
-        
+
         sizes = [float(r["Index Size (KB)"]) for r in results]
         smallest_idx = sizes.index(min(sizes))
         smallest = results[smallest_idx]["Indexer"]
-        
+
         report.append(f"- **Fastest Indexer**: {fastest} ({min(query_times):.2f} ms/query)")
         report.append(f"- **Most Memory Efficient**: {smallest} ({min(sizes):.2f} KB)")
-        
+
         report.append("\n## Results Table")
-        report.append("| Indexer | Build Time (s) | Query Time (ms) | Index Size (KB) | Memory Diff (MB) |")
+        report.append(
+            "| Indexer | Build Time (s) | Query Time (ms) | Index Size (KB) | Memory Diff (MB) |"
+        )
         report.append("| :--- | :--- | :--- | :--- | :--- |")
-        
+
         for r in results:
-            report.append(f"| {r['Indexer']} | {r['Build Time (s)']} | {r['Query Time (ms)']} | {r['Index Size (KB)']} | {r['Memory Diff (MB)']} |")
-            
+            report.append(
+                f"| {r['Indexer']} | {r['Build Time (s)']} | {r['Query Time (ms)']} | {r['Index Size (KB)']} | {r['Memory Diff (MB)']} |"
+            )
+
         report.append("\n## Analysis & Recommendations")
         report.append("Based on the data above, we recommend:")
         if "FAISS-HNSW" in [r["Indexer"] for r in results]:
-            report.append("- Use **FAISS-HNSW** for production-grade local search balancing speed and memory.")
+            report.append(
+                "- Use **FAISS-HNSW** for production-grade local search balancing speed and memory."
+            )
         if "SCANN" in [r["Indexer"] for r in results]:
-            report.append("- Use **ScaNN** for state-of-the-art speed/recall if on supported hardware.")
-        report.append("- For ultra-low latency requirements, prioritize indexers with sub-1ms query times.")
-    
+            report.append(
+                "- Use **ScaNN** for state-of-the-art speed/recall if on supported hardware."
+            )
+        report.append(
+            "- For ultra-low latency requirements, prioritize indexers with sub-1ms query times."
+        )
+
     with open(output_path, "w") as f:
         f.write("\n".join(report))
-    
+
     return output_path

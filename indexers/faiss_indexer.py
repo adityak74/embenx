@@ -40,7 +40,7 @@ class FaissIndexer(BaseIndexer):
     def build_index(self, embeddings: List[List[float]], metadata: List[Dict[str, Any]]) -> None:
         vectors = np.array(embeddings, dtype=np.float32)
         n = len(vectors)
-        
+
         if self.index_type == "IVF":
             # Dynamically determine nlist based on data size
             nlist = max(1, min(100, n // 4))
@@ -51,26 +51,26 @@ class FaissIndexer(BaseIndexer):
             # Dynamically determine PQ parameters
             # m: number of sub-vectors
             m = 8 if self.dimension % 8 == 0 else 4
-            # nbits: number of bits per sub-vector. 
+            # nbits: number of bits per sub-vector.
             # Default is 8 (256 clusters), but we need n >= 2^nbits
             nbits = 8
             if n < 256:
                 nbits = int(np.floor(np.log2(n))) if n > 1 else 1
-                # Standard PQ factory might not like very low nbits, 
+                # Standard PQ factory might not like very low nbits,
                 # but let's try to keep it at least 4 if possible or fallback to Flat
                 nbits = max(1, nbits)
-            
+
             if nbits >= 4:
                 self.index = faiss.index_factory(self.dimension, f"PQ{m}x{nbits}")
             else:
                 # Too little data for PQ, fallback to Flat
                 self.index = faiss.IndexFlatL2(self.dimension)
-            
+
             if not self.index.is_trained:
                 self.index.train(vectors)
         elif self.index is not None and not self.index.is_trained:
             self.index.train(vectors)
-            
+
         if self.index is not None:
             self.index.add(vectors)
         self.metadata.extend(metadata)

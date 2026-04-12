@@ -35,7 +35,9 @@ def test_benchmark_single_indexer_success(console):
     metadata = [{"meta": "data"}]
 
     with patch("benchmark.get_memory_usage", side_effect=[10, 15]):
-        res = benchmark_single_indexer("test_idx", mock_indexer_cls, 2, embeddings, metadata, console)
+        res = benchmark_single_indexer(
+            "test_idx", mock_indexer_cls, 2, embeddings, metadata, console
+        )
 
     assert res["Indexer"] == "TEST_IDX"
     assert res["Index Size (KB)"] == "1.00"
@@ -154,6 +156,7 @@ def test_run_benchmark_with_custom(
     run_benchmark("d", "s", "c", 1, ["custom"], "m", console, custom_indexer_script="path.py")
     mock_load_custom.assert_called_once()
 
+
 def test_generate_report(tmp_path):
     results = [
         {
@@ -161,7 +164,7 @@ def test_generate_report(tmp_path):
             "Build Time (s)": "0.1",
             "Query Time (ms)": "0.5",
             "Index Size (KB)": "100",
-            "Memory Diff (MB)": "10"
+            "Memory Diff (MB)": "10",
         }
     ]
     report_path = os.path.join(tmp_path, "report.md")
@@ -172,24 +175,27 @@ def test_generate_report(tmp_path):
         assert "FAISS" in content
         assert "test-ds" in content
 
+
 def test_grand_benchmark_cli():
     from typer.testing import CliRunner
 
     from cli import app
+
     runner = CliRunner()
-    
-    with patch("benchmark.run_benchmark") as mock_run, \
-         patch("data.list_zoo") as mock_list:
+
+    with patch("benchmark.run_benchmark") as mock_run, patch("data.list_zoo") as mock_list:
         mock_list.return_value = ["ds1"]
         # Match expected report generation fields
-        mock_run.return_value = [{
-            "Indexer": "F", 
-            "Query Time (ms)": "1", 
-            "Index Size (KB)": "1",
-            "Build Time (s)": "1",
-            "Memory Diff (MB)": "1"
-        }]
-        
+        mock_run.return_value = [
+            {
+                "Indexer": "F",
+                "Query Time (ms)": "1",
+                "Index Size (KB)": "1",
+                "Build Time (s)": "1",
+                "Memory Diff (MB)": "1",
+            }
+        ]
+
         result = runner.invoke(app, ["grand-benchmark", "-i", "faiss", "--max-docs", "2"])
         assert result.exit_code == 0
         mock_run.assert_called_once()

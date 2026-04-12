@@ -11,6 +11,7 @@ class SimpleIndexer(BaseIndexer):
     A brute-force NumPy baseline indexer.
     Uses Cosine Similarity.
     """
+
     def __init__(self, dimension: int):
         super().__init__("Simple", dimension)
         self.vectors = None
@@ -30,18 +31,18 @@ class SimpleIndexer(BaseIndexer):
     ) -> List[Tuple[Dict[str, Any], float]]:
         if self.vectors is None:
             return []
-            
+
         query = np.array(query_embedding).astype(np.float32)
         query_norm = np.linalg.norm(query)
         if query_norm > 0:
             query = query / query_norm
-            
+
         # Compute cosine similarities (dot product since normalized)
         similarities = np.dot(self.vectors, query)
-        
+
         # Get top-k indices (highest similarity)
         indices = np.argsort(similarities)[::-1][:top_k]
-        
+
         results = []
         for idx in indices:
             # Convert similarity to a distance-like score (1 - similarity)

@@ -11,6 +11,7 @@ class BM25Indexer(BaseIndexer):
     Sparse retrieval indexer using BM25 algorithm.
     Primarily uses 'text' from metadata for indexing.
     """
+
     def __init__(self, dimension: int = 0):
         # Dimension is not strictly needed for BM25 but kept for API consistency
         super().__init__("BM25", dimension)
@@ -23,7 +24,7 @@ class BM25Indexer(BaseIndexer):
 
     def build_index(self, embeddings: List[List[float]], metadata: List[Dict[str, Any]]) -> None:
         """
-        Build BM25 index. 
+        Build BM25 index.
         Expects a 'text' field in the metadata dictionaries.
         """
         self.metadata = metadata
@@ -38,7 +39,7 @@ class BM25Indexer(BaseIndexer):
         """
         if self.bm25 is None:
             return []
-            
+
         if isinstance(query_text, str):
             tokenized_query = self._tokenize(query_text)
         else:
@@ -48,7 +49,7 @@ class BM25Indexer(BaseIndexer):
 
         scores = self.bm25.get_scores(tokenized_query)
         top_n = np.argsort(scores)[::-1][:top_k]
-        
+
         results = []
         for i in top_n:
             if scores[i] > 0:
@@ -57,6 +58,7 @@ class BM25Indexer(BaseIndexer):
 
     def get_size(self) -> int:
         import sys
+
         # Very rough estimation of memory usage
         return sys.getsizeof(self.corpus_tokens) + sys.getsizeof(self.metadata)
 

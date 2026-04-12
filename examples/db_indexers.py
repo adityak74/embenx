@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+
 from embenx import Collection
 
 
@@ -64,6 +65,7 @@ def run_db_examples():
         print(f" OpenSearch result: {res[0][0]['text']}")
     except Exception as e:
         print(f" OpenSearch failed (is it running?): {e}")
+
 
 if __name__ == "__main__":
     run_db_examples()
