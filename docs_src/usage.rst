@@ -14,7 +14,7 @@ The primary interface is the ``Collection`` class. It provides a table-like abst
    import numpy as np
 
    # 1. Initialize with a specific backend
-   # Options: 'faiss-hnsw', 'scann', 'usearch', 'pgvector', 'duckdb', etc.
+   # Options: 'faiss-hnsw', 'scann', 'usearch', 'pgvector', 'duckdb', 'opensearch', etc.
    col = Collection(dimension=768, indexer_type="faiss-hnsw")
 
    # 2. Add data
