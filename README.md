@@ -197,6 +197,7 @@ Embenx registers **22 indexer keys** across **12 backend families** out of the b
 | `weaviate` | Weaviate | Multi-tenant, schema-driven search |
 | `duckdb` | DuckDB | Analytical + vector hybrid queries |
 | `elasticsearch` | Elasticsearch | Full-text + vector search combined |
+| `opensearch` | OpenSearch | Native k-NN vector search |
 | `vespa` | Vespa | Real-time ranking & serving |
 | `bm25` | BM25 (sparse) | Keyword / sparse retrieval baseline |
 | `simple` | NumPy Exact | Exact search, zero dependencies |
