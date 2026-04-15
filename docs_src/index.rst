@@ -1,9 +1,10 @@
-Embenx Documentation 🚀
-========================
+<!-- generated-by: gsd-doc-writer -->
+Embenx Documentation (v1.5.1) 🚀
+==============================
 
-**Universal embedding retrieval toolkit & agentic memory layer.**
+**The Agentic Memory Layer & Universal Retrieval Toolkit.**
 
-Embenx is a high-performance Python library designed for the 2026 AI ecosystem. It bridges the gap between raw vector indices and full-blown vector databases, providing a unified API for 15+ backends, advanced filtering, hybrid search, and specialized memory structures for AI agents.
+Embenx is a high-performance Python library designed for the modern AI ecosystem. It bridges the gap between raw vector indices and full-blown vector databases, providing a unified API for 20+ vector backends, advanced filtering, hybrid search, and specialized memory structures for AI agents.
 
 .. toctree::
    :maxdepth: 2
@@ -20,10 +21,11 @@ Key Capabilities
 ----------------
 
 * **Unified Collection API**: A table-like interface for managing vectors and metadata seamlessly.
+* **Hybrid Search (RRF)**: Combine dense semantic search with sparse BM25 keyword search using Reciprocal Rank Fusion.
 * **Agentic Memory (MCP)**: Built-in Model Context Protocol server for instant integration with Claude, GPT-5, and autonomous agents.
 * **Advanced Visuals**: Built-in 3D HNSW Graph Visualizer, RAG Playground, and Embenx Explorer.
 * **Research-Driven Optimizations**: Implementation of state-of-the-art algorithms like ClusterKV, TurboQuant (1-bit quantization), and Echo (Temporal Memory).
-* **15+ Vector Backends**: Support for FAISS, ScaNN, USearch, pgvector, LanceDB, Milvus, Qdrant, and more.
+* **20+ Vector Backends**: Unified support for FAISS, ScaNN, USearch, HNSWLib, Annoy, pgvector, LanceDB, Milvus, Qdrant, Chroma, Weaviate, DuckDB, Vespa, Elasticsearch, OpenSearch, and BM25.
 * **Multimodal Support**: Native handling of image embeddings (CLIP) and cross-modal retrieval.
 
 Quick Start

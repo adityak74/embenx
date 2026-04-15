@@ -20,7 +20,7 @@ def info():
     """
     console.print(
         Panel.reveal(
-            "[bold rocket] Embenx v1.2.0[/bold rocket]\n[dim]The Agentic Memory Layer[/dim]",
+            "[bold rocket] Embenx v1.5.1[/bold rocket]\n[dim]The Agentic Memory Layer[/dim]",
             title="System Info",
             expand=False,
         )
@@ -60,6 +60,14 @@ def info():
                 import weaviate
             elif name == "pgvector":
                 import psycopg2
+            elif name == "opensearch":
+                import opensearchpy
+            elif name == "elasticsearch":
+                import elasticsearch
+            elif name == "vespa":
+                import requests  # Vespa uses requests
+            elif name == "bm25":
+                import rank_bm25
 
             table.add_row(name, "[green]✓ Ready[/green]")
         except ImportError:

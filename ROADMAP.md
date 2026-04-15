@@ -1,3 +1,4 @@
+<!-- generated-by: gsd-doc-writer -->
 # Embenx Roadmap 🚀
 
 This document outlines the strategic direction of Embenx as it evolves from a benchmarking CLI into a **Universal Embedding Retrieval Toolkit** and **Agentic Memory Layer**.
@@ -37,7 +38,7 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 - [x] **Embenx Explorer**: A lightweight, built-in web UI to visualize vector clusters and metadata distributions (built with Streamlit).
 - [x] **HNSW Graph Visualizer**: Interactive 3D visualization of the HNSW graph layers and navigation paths.
 - [x] **RAG Playground**: Integrated chat loop to test retrieval quality with LLMs.
-- [x] **Export to production**: One-click export from local Embenx collections to production clusters (Qdrant, Milvus).
+- [x] **Export to production**: One-click export from local Embenx collections to production clusters (Qdrant, Milvus, **OpenSearch**).
 
 ## Milestone 7: Advanced World Models ✅
 - [x] **Trajectory Retrieval**: Search *sequences* of vectors (action/state trajectories) with mean/max pooling.
@@ -64,6 +65,24 @@ Embenx aims to be the standard toolkit for Python developers to move embeddings 
 - [x] **Technical Report Generator**: Automated generation of Markdown benchmark reports.
 - [x] **Multimodal Support**: Native handling of image embeddings (CLIP).
 - [x] **100% Documentation Coverage**: Every class, method, and script fully documented.
+
+## Milestone 11: Enterprise Connectivity & Production Scale ✅
+**Goal**: Native integration with enterprise-grade vector search engines and large-scale backends.
+
+- [x] **OpenSearch Indexer**: Native k-NN vector search support for OpenSearch clusters.
+- [x] **Elasticsearch Integration**: Support for dense vector fields and vector search in Elasticsearch.
+- [x] **Vespa.ai Integration**: Support for Vespa as a high-performance search engine backend.
+- [x] **Production Export (v1.5.1)**: Refined migration paths from local FAISS to remote production clusters.
+
+## Milestone 12: Distributed Intelligence & 2026 Vision 🚀
+**Goal**: Transition into a distributed, autonomous agentic memory layer.
+
+- [ ] **Distributed Collection Building**: Parallelize indexing across multiple nodes for billion-scale datasets.
+- [ ] **Streaming Memory Shards**: Real-time delta updates for dynamic memory without full re-indexing.
+- [ ] **Native Pinecone & Zilliz Support**: First-class integration with serverless managed vector databases.
+- [ ] **Explainable AI (XAI) for Retrieval**: Integrated visual tools to debug *why* specific vectors were ranked highly (feature attribution).
+- [ ] **Autonomous Memory Pruning**: AI-driven cleanup of stale or redundant agentic memories to maintain performance.
+- [ ] **Privacy-Preserving Search**: Experiments with differential privacy and homomorphic encryption for sensitive agentic memory.
 
 ---
 

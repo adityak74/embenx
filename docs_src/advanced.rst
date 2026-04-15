@@ -1,3 +1,4 @@
+<!-- generated-by: gsd-doc-writer -->
 Advanced Research & Agentic Memory
 ==================================
 
