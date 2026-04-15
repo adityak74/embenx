@@ -1,3 +1,4 @@
+<!-- generated-by: gsd-doc-writer -->
 CLI Reference
 =============
 
@@ -35,11 +36,11 @@ Benchmarking
 
 benchmark
 ~~~~~~~~~
-Run performance benchmarks on local Parquet files.
+Run performance benchmarks on local Parquet files or remote datasets.
 
 .. code-block:: bash
 
-   embenx benchmark data.parquet --indexers faiss,usearch --max-docs 1000
+   embenx benchmark data.parquet --indexers faiss,usearch,opensearch --max-docs 1000 --report
 
 grand-benchmark
 ~~~~~~~~~~~~~~~
@@ -47,14 +48,22 @@ Run comprehensive benchmarks across all datasets in the Retrieval Zoo and genera
 
 .. code-block:: bash
 
-   embenx grand-benchmark --indexers faiss,scann,hnswlib
+   embenx grand-benchmark --indexers faiss,scann,hnswlib,opensearch
+
+list-indexers
+~~~~~~~~~~~~~
+List all available indexing configurations supported by Embenx.
+
+.. code-block:: bash
+
+   embenx list-indexers
 
 Agentic & Visual
 ----------------
 
 mcp-start
 ~~~~~~~~~
-Start the Model Context Protocol (MCP) server to connect AI agents.
+Start the Model Context Protocol (MCP) server to connect AI agents to your vector memory.
 
 .. code-block:: bash
 
@@ -100,7 +109,7 @@ Remove temporary benchmark artifacts and database files to free up space.
 
 init-skill
 ~~~~~~~~~~
-Initialize the Embenx skill for Gemini CLI sub-agents.
+Initialize the Embenx skill for Gemini CLI sub-agents (creates SKILL.md).
 
 .. code-block:: bash
 
